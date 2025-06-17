@@ -1,0 +1,195 @@
+<ng-template #content let-modal data-keyboard="false" data-backdrop="false">
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">Report Criteria</h4>
+    <button type="button" class="close text-danger" aria-label="Close" data-dismiss="modal" (click)="modalRef.hide()">
+    <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+      <div *ngIf="showAlert" class="alert alert-danger alert-dismissible fade show" role="alert">
+          <strong>Error! </strong> {{alertMsg}}
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="closeAlert()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+    <form [formGroup]="reportcriteria">
+      <div>
+        <label for="fromDate">As on Date</label>
+        <div class="input-group">
+          <input type="text" placeholder="dd/mm/yyyy" class="form-control" [ngModel]="fromdate" disabled bsDatepicker
+          formControlName="fromDate" [bsConfig]="{ dateInputFormat: 'DD/MM/YYYY', containerClass:'theme-dark-blue' }"
+          [isOpen]="isOpenFromDp">
+        <div class="input-group-append">
+          <button mat-raised-button class="btn btn-outline-secondary" type="button" (click)="isOpenFromDp = !isOpenFromDp">
+            <i class="fa fa-calendar" aria-hidden="true"></i>
+          </button>
+        </div>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+      <button mat-raised-button class="btn btn-primary" (click)="SubmitReport()">Submit</button> &nbsp;
+      <button mat-raised-button class="btn btn-light" (click)="modalRef.hide()">Close</button>
+  </div>
+</ng-template>
+
+
+<div class="row d-flex justify-content-center align-items-center pt-4"
+  style="background-color: #78c2ad21; min-height: 20vh;">
+  <div class="col-xs-12 col-sm-12 col-md-8 col-lg-8 shadow-sm mb-4 bg-white p-3">
+    <div>
+      <button mat-raised-button type="button" class="btn btn-rounded btn-primary m-1" (click)="onLoadScreen(content)">Retrive</button>
+      <button mat-raised-button type="button" class="btn btn-rounded btn-primary m-1" (click)="closeScreen()">Close</button>
+      <button mat-raised-button type="button" class="btn btn-rounded btn-primary m-1" [useExistingCss]="true"
+        printSectionId="mattable" ngxPrint>Print</button>
+        <button mat-raised-button type="button" class="btn btn-rounded btn-primary m-1 pull-right" (click)="downloadexcel()">Download Excel</button>
+    </div>
+  </div>
+  <div class="col-xs-12 col-sm-12 shadow-lg mb-4 bg-white p-3">
+   
+
+
+     <!-- material data table begins-->
+   
+     <!-- <mat-form-field appearance="outline">
+      <mat-label>Search Member List</mat-label>
+      <input matInput (keyup)="applyFilter($event)" placeholder="Ex. abc / 123">
+    </mat-form-field> -->
+    <div class="mat-elevation-z8" id="mattable">
+  <table mat-table cdkDropListGroup [dataSource]="dataSource" class="mat-elevation-z8" matSort>
+    <!-- Position Column -->
+   <ng-container matColumnDef="mainHeader">
+       <th mat-header-cell colspan="7" *matHeaderCellDef>
+        <div class="justify-content-center" style="text-align:center">
+          <h4>{{ardbName}} ({{branchName}})</h4>
+          <h4>Run Date & Time : {{today}} </h4>
+          <h4> <u>Membership Position As on {{asOnDate}} </u></h4>
+        </div>
+       </th>
+   </ng-container>
+   
+  <ng-container matColumnDef="brn_name">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header style="text-align: left;"> BRANCH </th>
+    <td mat-cell *matCellDef="let element" style="text-align: left;"> {{ element.brn_name }} </td>
+  </ng-container>
+
+  <!-- SC Column -->
+  <ng-container matColumnDef="sc">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header style="text-align: center;"> SC </th>
+    <td mat-cell *matCellDef="let element" style="text-align: center;"> {{ element.sc }} </td>
+  </ng-container>
+
+  <!-- ST Column -->
+  <ng-container matColumnDef="st">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header style="text-align: center;"> ST </th>
+    <td mat-cell *matCellDef="let element" style="text-align: center;"> {{ element.st }} </td>
+  </ng-container>
+
+  <!-- OBC Column -->
+  <ng-container matColumnDef="obc">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header style="text-align: center;"> OBC </th>
+    <td mat-cell *matCellDef="let element" style="text-align: center;"> {{ element.obc }} </td>
+  </ng-container>
+
+  <!-- General Column -->
+  <ng-container matColumnDef="gen">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header style="text-align: center;"> GENERAL </th>
+    <td mat-cell *matCellDef="let element" style="text-align: center;"> {{ element.gen }} </td>
+  </ng-container>
+
+  <!-- Total Column -->
+  <ng-container matColumnDef="tot">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header style="text-align: center;"> TOTAL </th>
+    <td mat-cell *matCellDef="let element" style="text-align: center;"> <b>{{ element.tot }}</b> </td>
+  </ng-container>
+
+  <!-- Out of Which Women Column -->
+  <ng-container matColumnDef="women">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header style="text-align: center;"> OUT OF WHICH WOMEN </th>
+    <td mat-cell *matCellDef="let element" style="text-align: center;"> {{ element.women }} </td>
+  </ng-container>
+
+  <ng-container matColumnDef="0" >
+    <td mat-footer-cell *matFooterCellDef  style="font-weight: 800;text-align:center">
+     Total
+    </td>
+  </ng-container>
+  <ng-container matColumnDef="1" >
+    <td mat-footer-cell *matFooterCellDef  style="font-weight: 800;text-align:center">
+      {{tot_sc | number : '1.2-2'}}
+    </td>
+  </ng-container>
+  <ng-container matColumnDef="2" >
+    <td mat-footer-cell *matFooterCellDef  style="font-weight: 800;text-align:center">
+      {{tot_st | number : '1.2-2'}}
+    </td>
+  </ng-container>
+  <ng-container matColumnDef="3" >
+    <td mat-footer-cell *matFooterCellDef  style="font-weight: 800;text-align:center">
+      {{tot_obc | number : '1.2-2'}}
+    </td>
+  </ng-container>
+  <ng-container matColumnDef="4" >
+    <td mat-footer-cell *matFooterCellDef  style="font-weight: 800;text-align:center">
+      {{tot_gen | number : '1.2-2'}}
+    </td>
+  </ng-container>
+  <ng-container matColumnDef="5" >
+    <td mat-footer-cell *matFooterCellDef  style="font-weight: 800;text-align:center">
+      {{tot_tot | number : '1.2-2'}}
+    </td>
+  </ng-container>
+  <ng-container matColumnDef="6" >
+    <td mat-footer-cell *matFooterCellDef  style="font-weight: 800;text-align:center">
+      {{tot_women | number : '1.2-2'}}
+    </td>
+  </ng-container>
+  <tr mat-footer-row *matFooterRowDef="['0','1','2','3','4','5','6']" class="example-second-footer-row"></tr>
+    
+    <tr mat-header-row *matHeaderRowDef="['mainHeader']"></tr>    
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let element; columns: displayedColumns;"></tr>
+  </table>
+  <footer>
+    <small>
+      This report is generated through Synergic Banking
+     </small>
+   </footer>
+  </div>
+  <!-- <mat-paginator [length]="resultLength" showFirstLastButtons [pageSizeOptions]="[50,100,500,1000, this.reportData.length]" MatPaginator></mat-paginator> -->
+
+  <!-- material data table ends -->
+    <pagination hidden style="float:right;" [totalItems]="reportData?.length" [itemsPerPage]="itemsPerPage"
+    [boundaryLinks]="true" [directionLinks]="true" [maxSize]="5" [(ngModel)]="currentPage" name="currentPage"
+    (pageChanged)="pageChanged($event)" (pageBoundsCorrection)="pageChanged($event)"></pagination>
+  
+ 
+    
+  <!-- <div id="newtab" #content1>
+    hello
+  </div> -->
+  <!-- <div>
+    <small>
+      This report is generated through Synergic Banking
+     </small> 
+  </div> -->
+  
+  </div>
+
+  <div class="col-xs-12 col-sm-12 col-md-8 col-lg-8 shadow-sm mb-4 bg-white p-3">
+    <div>
+      <button mat-raised-button type="button" class="btn btn-rounded btn-primary m-1" (click)="onLoadScreen(content)">Retrive</button>
+      <button mat-raised-button type="button" class="btn btn-rounded btn-primary m-1" (click)="closeScreen()">Close</button>
+      <!-- <button mat-raised-button type="button" class="btn btn-rounded btn-primary m-1" [useExistingCss]="true"
+        printSectionId="hiddenTab" ngxPrint>Print</button> -->
+        <button mat-raised-button type="button" class="btn btn-rounded btn-primary m-1" [useExistingCss]="true"
+        printSectionId="mattable" ngxPrint>Print</button>
+        <!-- <button mat-raised-button type="button" class="btn btn-rounded btn-primary m-1 pull-right" (click)="downloadPDF()">Download PDF</button> -->
+        <button mat-raised-button type="button" class="btn btn-rounded btn-primary m-1 pull-right" (click)="downloadexcel()">Download Excel</button>
+
+    </div>
+  </div>
+</div>
+<loading *ngIf="isLoading"></loading>

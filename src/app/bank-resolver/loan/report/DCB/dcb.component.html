@@ -1,0 +1,201 @@
+<ng-template #content let-modal data-keyboard="false" data-backdrop="false">
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">Report Criteria</h4>
+    <button type="button" class="close text-danger" aria-label="Close" data-dismiss="modal" (click)="modalRef.hide()">
+    <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+      <div *ngIf="showAlert" class="alert alert-danger alert-dismissible fade show" role="alert">
+          <strong>Error! </strong> {{alertMsg}}
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="closeAlert()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <form [formGroup]="reportcriteria">
+          <div class="form-row">
+            <div class="col-6">
+              <small for="fromDate" >From Date</small>
+              <div class="input-group">
+                <input type="text" placeholder="dd/mm/yyyy" class="form-control" [ngModel]="fromdate" disabled bsDatepicker
+                formControlName="fromDate" [bsConfig]="{ dateInputFormat: 'DD/MM/YYYY', containerClass:'theme-dark-blue' }"
+                [isOpen]="isOpenFromDp">
+              <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="button" (click)="isOpenFromDp = !isOpenFromDp">
+                  <i class="fa fa-calendar" aria-hidden="true"></i>
+                </button>
+              </div>
+              </div>
+            </div>
+            <div class="col-6">
+              <small for="toDate" >To Date</small>
+              <div class="input-group">
+                <input type="text" placeholder="dd/mm/yyyy" class="form-control" [ngModel]="toDate" disabled bsDatepicker
+                formControlName="toDate" [bsConfig]="{ dateInputFormat: 'DD/MM/YYYY', containerClass:'theme-dark-blue' }"
+                [isOpen]="isOpenToDp">
+              <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="button" (click)="isOpenToDp = !isOpenToDp">
+                  <i class="fa fa-calendar" aria-hidden="true"></i>
+                </button>
+              </div>
+              </div>
+            </div>
+          </div>
+        </form>
+  </div>
+  <div class="modal-footer">
+      <button mat-raised-button class="btn btn-primary" (click)="SubmitReport()">Submit</button> &nbsp;
+      <button mat-raised-button class="btn btn-light" (click)="modalRef.hide()">Close</button>
+  </div>
+</ng-template>
+
+<div class="row d-flex justify-content-center align-items-center pt-4"
+style="background-color: #78c2ad21; min-height: 20vh;">
+<div  class="col-xs-12 col-sm-12 col-md-8 col-lg-8 shadow-sm mb-4 bg-white p-3">
+  <div>
+   <button mat-raised-button type="button" class="btn btn-rounded btn-primary m-1" (click)="closeScreen()" >Close</button>
+   <button mat-raised-button type="button"
+   class="btn btn-rounded btn-primary m-1"
+   [useExistingCss]="true"
+   printSectionId="mattable"
+   ngxPrint>Print</button>
+ <button mat-raised-button type="button" class="btn btn-rounded btn-primary m-1" (click)="onLoadScreen(content)">Retrieve</button>
+ <button mat-raised-button type="button" class="btn btn-rounded btn-primary m-1" (click)="downloadexcel()">Export as EXCEL</button>
+  </div>
+  </div>
+<!-- {{ReportUrl}} -->
+
+<div class="col-xs-12 col-sm-12 shadow-lg mb-4 bg-white p-3 mkScroll">
+ 
+
+ <div class="mat-elevation-z8" id="mattable" *ngIf="reportData">
+  
+<table>
+  <thead>
+    <tr>
+      <th colspan="16">
+        <div class="justify-content-center" style="text-align:center">
+          <br><h4>{{ardbName}} ({{branchName}})</h4>
+          
+          <h4>Run Date & Time : {{today}} </h4>
+          <h4> <u> Loans Demand Collection and Balance From {{fromdate.toDateString()| date: 'dd/MM/yyyy'}} to {{toDate.toDateString()| date: 'dd/MM/yyyy'}} </u></h4>
+         
+        </div>
+      </th>
+    </tr>
+      <tr>
+          <th rowspan="2">Loan Type</th>
+          <th colspan="2">Demand</th>
+          <th colspan="2">Collection</th>
+          <th colspan="2">Balance</th>
+          <th colspan="2">Percentage of Collection</th>
+      </tr>
+      <tr>
+          <th>Principal</th>
+          <th>Interest</th>
+          <th>Principal</th>
+          <th>Interest</th>
+          <th>Principal</th>
+          <th>Interest</th>
+          <th>Principal</th>
+          <th>Interest</th>
+      </tr>
+  </thead>
+  <!-- <tbody>
+      <tr *ngFor="let entry of reportData">
+          <td style="text-align: left;">{{ entry.acc_type }}</td>
+          <td class="amount">{{ entry.prn_demand | number:'1.2-2' }}</td>
+          <td class="amount">{{ entry.intt_demand | number:'1.2-2' }}</td>
+          <td class="amount">{{ entry.prn_recov | number:'1.2-2' }}</td>
+          <td class="amount">{{ entry.intt_recov | number:'1.2-2' }}</td>
+          <td class="amount">{{ entry.prn_bal | number:'1.2-2' }}</td>
+          <td class="amount">{{ entry.intt_bal | number:'1.2-2' }}</td>
+          <td class="amount">{{ (entry.prn_recov / entry.prn_demand) * 100 | number:'1.2-2' }}%</td>
+          <td class="amount">{{ (entry.intt_recov / entry.intt_demand) * 100 | number:'1.2-2' }}%</td>
+      </tr>
+      <tr>
+        <td style="text-align: cetner;"><b>Total</b></td>
+        <td class="amount"><b>{{ tot_prn_demand | number:'1.2-2' }}</b></td>
+        <td class="amount"><b>{{ tot_intt_demand | number:'1.2-2' }}</b></td>
+        <td class="amount"><b>{{ tot_prn_recov | number:'1.2-2' }}</b></td>
+        <td class="amount"><b>{{ tot_intt_recov | number:'1.2-2' }}</b></td>
+        <td class="amount"><b>{{ tot_prn_bal | number:'1.2-2' }}</b></td>
+        <td class="amount"><b>{{ tot_intt_bal | number:'1.2-2' }}</b></td>
+        <td class="amount">&nbsp;</td>
+        <td class="amount">&nbsp;</td>
+      </tr>
+  </tbody> -->
+  <tbody>
+    <ng-container *ngFor="let group of groupedReportData">
+      <!-- Branch Header -->
+      <tr>
+        <td colspan="9" style="font-weight:bold; font-size: 20px; background:#eee;">{{ group.branch | uppercase}}</td>
+      </tr>
+  
+      <!-- Each account type row -->
+      <tr *ngFor="let entry of group.items">
+        <td>{{ entry.acc_type }}</td>
+        <td class="amount">{{ entry.prn_demand | number:'1.2-2' }}</td>
+        <td class="amount">{{ entry.intt_demand | number:'1.2-2' }}</td>
+        <td class="amount">{{ entry.prn_recov | number:'1.2-2' }}</td>
+        <td class="amount">{{ entry.intt_recov | number:'1.2-2' }}</td>
+        <td class="amount">{{ entry.prn_bal | number:'1.2-2' }}</td>
+        <td class="amount">{{ entry.intt_bal | number:'1.2-2' }}</td>
+        <td class="amount">{{ (entry.prn_demand ? (entry.prn_recov / entry.prn_demand) * 100 : 0) | number:'1.2-2' }}%</td>
+        <td class="amount">{{ (entry.intt_demand ? (entry.intt_recov / entry.intt_demand) * 100 : 0) | number:'1.2-2' }}%</td>
+      </tr>
+  
+      <!-- Branch Total -->
+      <tr style="font-weight:bold; background:#f9f9f9;">
+        <td>{{ group.branch }} Total</td>
+        <td class="amount">{{ group.total.prn_demand | number:'1.2-2' }}</td>
+        <td class="amount">{{ group.total.intt_demand | number:'1.2-2' }}</td>
+        <td class="amount">{{ group.total.prn_recov | number:'1.2-2' }}</td>
+        <td class="amount">{{ group.total.intt_recov | number:'1.2-2' }}</td>
+        <td class="amount">{{ group.total.prn_bal | number:'1.2-2' }}</td>
+        <td class="amount">{{ group.total.intt_bal | number:'1.2-2' }}</td>
+        <td class="amount">{{ (group.total.prn_demand ? (group.total.prn_recov / group.total.prn_demand) * 100 : 0) | number:'1.2-2' }}%</td>
+        <td class="amount">{{ (group.total.intt_demand ? (group.total.intt_recov / group.total.intt_demand) * 100 : 0) | number:'1.2-2' }}%</td>
+      </tr>
+    </ng-container>
+  
+    <!-- Grand Total -->
+    <tr style="font-weight:bold; background:#ddd;">
+      <td>Grand Total</td>
+      <td class="amount">{{ grandTotal.prn_demand | number:'1.2-2' }}</td>
+      <td class="amount">{{ grandTotal.intt_demand | number:'1.2-2' }}</td>
+      <td class="amount">{{ grandTotal.prn_recov | number:'1.2-2' }}</td>
+      <td class="amount">{{ grandTotal.intt_recov | number:'1.2-2' }}</td>
+      <td class="amount">{{ grandTotal.prn_bal | number:'1.2-2' }}</td>
+      <td class="amount">{{ grandTotal.intt_bal | number:'1.2-2' }}</td>
+      <td class="amount">{{ (grandTotal.prn_recov / grandTotal.prn_demand) * 100  | number:'1.2-2' }}%</td>
+      <td class="amount">{{(grandTotal.intt_recov / grandTotal.intt_demand) * 100  | number:'1.2-2' }}%</td>
+    </tr>
+  </tbody>
+</table>
+<footer>
+<small>
+  This report is generated through Synergic Banking
+ </small>
+</footer>
+</div>
+
+ 
+</div>
+
+<div  class="col-xs-12 col-sm-12 col-md-8 col-lg-8 shadow-sm mb-4 bg-white p-3">
+<div>
+ <button mat-raised-button type="button" class="btn btn-rounded btn-primary m-1" (click)="closeScreen()" >Close</button>
+ <button mat-raised-button type="button"
+ class="btn btn-rounded btn-primary m-1"
+ [useExistingCss]="true"
+ printSectionId="mattable"
+ ngxPrint>Print</button>
+ <button mat-raised-button type="button" class="btn btn-rounded btn-primary m-1" (click)="onLoadScreen(content)">Retrieve</button>
+ <button mat-raised-button type="button" class="btn btn-rounded btn-primary m-1" (click)="downloadexcel()">Export as EXCEL</button>
+
+</div>
+</div>
+</div>
+<loading *ngIf="isLoading"></loading>

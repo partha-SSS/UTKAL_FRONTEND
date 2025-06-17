@@ -1,0 +1,260 @@
+<ng-template #content let-modal data-keyboard="false" data-backdrop="false">
+    <div class="modal-header">
+      <h4 class="modal-title" id="modal-basic-title">Report Criteria</h4>
+      <button type="button" class="close text-danger" aria-label="Close" data-dismiss="modal" (click)="modalRef.hide()">
+      <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+        <div *ngIf="showAlert" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Error! </strong> {{alertMsg}}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="closeAlert()">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+  
+      <form [formGroup]="reportcriteria">
+        <div>
+          <label for="fromDate">As on Date</label>
+          <div class="input-group">
+            <input type="text" placeholder="dd/mm/yyyy" class="form-control" [ngModel]="fromdate" disabled bsDatepicker
+            formControlName="fromDate" [bsConfig]="{ dateInputFormat: 'DD/MM/YYYY', containerClass:'theme-dark-blue' }"
+            [isOpen]="isOpenFromDp">
+          <div class="input-group-append">
+            <button mat-raised-button class="btn btn-outline-secondary" type="button" (click)="isOpenFromDp = !isOpenFromDp">
+              <i class="fa fa-calendar" aria-hidden="true"></i>
+            </button>
+          </div>
+          </div>
+        </div>
+        <!-- <div > 
+          <small for="acc_type_cd">Loan Type</small>
+           <select id="acc_type_cd" class="form-control form-control-sm" (change)="takeLoanVal($event)" formControlName="acc_type_cd">
+             <option *ngIf="AcctTypes" disabled>Choose</option>
+             <option *ngFor="let acctType of AcctTypes" [value]="acctType.acc_type_cd">
+               {{acctType.acc_type_cd +' ' + acctType.acc_type_desc}}
+             </option>
+           </select>
+        </div> -->
+      </form>
+    </div>
+    <div class="modal-footer">
+        <button mat-raised-button class="btn btn-primary" (click)="SubmitReport()">Submit</button> &nbsp;
+        <button mat-raised-button class="btn btn-light" (click)="modalRef.hide()">Close</button>
+    </div>
+  </ng-template>
+  
+  <div class="row d-flex justify-content-center align-items-center pt-4"
+  style="background-color: #78c2ad21; min-height: 20vh;">
+  
+  <!-- {{ReportUrl}} -->
+  <div  class="col-xs-12 col-sm-12 col-md-8 col-lg-8 shadow-sm mb-4 bg-white p-3">
+    <div>
+     <button mat-raised-button type="button" class="btn btn-rounded btn-primary m-1" (click)="closeScreen()" >Close</button>
+     <button mat-raised-button type="button" 
+     class="btn btn-rounded btn-primary m-1" 
+     [useExistingCss]="true"
+     printSectionId="mattable" 
+     ngxPrint>Print</button>
+     <button mat-raised-button type="button" class="btn btn-rounded btn-primary m-1" (click)="onLoadScreen(content)">Retrieve</button>
+ <button mat-raised-button type="button" class="btn btn-rounded btn-primary m-1" (click)="downloadexcel()">Export as EXCEL</button>
+
+    
+    </div>
+    </div>
+  <div class="col-xs-12 col-sm-12 shadow-lg mb-4 bg-white p-3 mkScroll">
+    <!-- <div class="justify-content-center" style="text-align:center" *ngIf="reportData">
+      <h6>{{ardbName}} {{branchName}}</h6>
+  
+      <h6>Run Date & Time : {{today}} </h6> <br>
+      <h6> <u> Defaulter List as on  {{reportcriteria.controls.fromDate.value?.toDateString() | date: 'dd/MM/yyyy'}}</u></h6>
+      <p> <b>
+        Loan Type : {{loanNm}}</b>
+      </p>
+  
+   </div> -->
+   
+   <mat-form-field appearance="outline">
+    <mat-label>Search by Village</mat-label>
+    <input
+      type="text"
+      matInput
+      [formControl]="villageControl"
+      [matAutocomplete]="auto"
+      placeholder="Type village name"
+    />
+    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="filterByVillage($event.option.value)">
+      <mat-option *ngFor="let village of filteredVillages | async" [value]="village">
+        {{ village }}
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>&nbsp;&nbsp;&nbsp;&nbsp;
+  <mat-form-field appearance="outline">
+    <mat-label>Filter by Alarm (greater than)</mat-label>
+    <input matInput type="number" [formControl]="alarmControl" placeholder="Enter alarm amount" />
+  </mat-form-field>&nbsp;&nbsp;&nbsp;&nbsp;
+  <button  class="btn btn-rounded btn-primary m-1" (click)="resetFilters()">Reset Filters</button>
+
+  <br>
+
+   <!-- <mat-form-field appearance="outline">
+    <mat-label>Search</mat-label>
+    <input matInput (keyup)="applyFilter($event)" placeholder="Search by name, ID, etc." />
+  </mat-form-field> <br> -->
+  <div class="mat-elevation-z8" id="mattable">
+
+    <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+      <ng-container matColumnDef="mainHeader">
+        <th mat-header-cell colspan="16" *matHeaderCellDef>
+          <div class="justify-content-center" style="text-align:center" *ngIf="reportData">
+            <h4>{{ardbName}} ({{branchName}})</h4>
+            <h4>Run Date & Time : {{today}} </h4>
+            <h4> <u> Gold Loan Defaulter List as on  {{reportcriteria.controls.fromDate.value?.toDateString() | date: 'dd/MM/yyyy'}}</u></h4>
+            <p> 
+              <!-- <b>Loan Type : {{loanNm}}</b> -->
+            </p>
+        
+         </div>
+       </th>
+      </ng-container>
+      <ng-container matColumnDef="loan_id">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Loan ID</th>
+        <td mat-cell *matCellDef="let element">{{ element.loan_id }}</td>
+        <!-- <td mat-footer-cell *matFooterCellDef></td> -->
+      </ng-container>
+    
+      <ng-container matColumnDef="cust_cd">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Customer Code</th>
+        <td mat-cell *matCellDef="let element">{{ element.cust_cd }}</td>
+        <!-- <td mat-footer-cell *matFooterCellDef></td> -->
+      </ng-container>
+    
+      <ng-container matColumnDef="disb_dt">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Disbursed Date</th>
+        <td mat-cell *matCellDef="let element">{{ element.disb_dt.substr(0,10) }}</td>
+        <!-- <td mat-footer-cell *matFooterCellDef>Total</td> -->
+
+      </ng-container>
+    
+      <ng-container matColumnDef="disb_amt">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Disbursed Amount</th>
+        <td mat-cell *matCellDef="let element">{{ element.disb_amt | number : '1.2-2' }}</td>
+        <!-- <td mat-footer-cell *matFooterCellDef>{{ disb_amt | number : '1.2-2'}}</td> -->
+      </ng-container>
+    
+      <ng-container matColumnDef="prev_gold_rate">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Previous Gold Rate</th>
+        <td mat-cell *matCellDef="let element">{{ element.prev_gold_rate | number : '1.2-2'}}</td>
+        <!-- <td mat-footer-cell *matFooterCellDef>{{ prev_gold_rate | number : '1.2-2'}}</td>
+        <td mat-footer-cell *matFooterCellDef></td> -->
+      </ng-container>
+    
+      <ng-container matColumnDef="gross_wt">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Gross Weight</th>
+        <td mat-cell *matCellDef="let element">{{ element.gross_wt }}</td>
+        <!-- <td mat-footer-cell *matFooterCellDef>{{ gross_wt | number : '1.2-2'}}</td>
+        <td mat-footer-cell *matFooterCellDef></td> -->
+      </ng-container>
+    
+      <ng-container matColumnDef="net_wt">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Net Weight</th>
+        <td mat-cell *matCellDef="let element">{{ element.net_wt }}</td>
+        <!-- <td mat-footer-cell *matFooterCellDef>{{ net_wt | number : '1.2-2'}}</td>
+        <td mat-footer-cell *matFooterCellDef></td> -->
+      </ng-container>
+    
+      <ng-container matColumnDef="due_dt">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Due Date</th>
+        <td mat-cell *matCellDef="let element">{{ element.due_dt.substr(0,10) }}</td>
+        <!-- <td mat-footer-cell *matFooterCellDef></td> -->
+      </ng-container>
+    
+      <ng-container matColumnDef="curr_prn">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Current Principal</th>
+        <td mat-cell *matCellDef="let element">{{ element.curr_prn | number : '1.2-2'}}</td>
+        <!-- <td mat-footer-cell *matFooterCellDef>{{ curr_prn | number : '1.2-2'}}</td>
+        <td mat-footer-cell *matFooterCellDef></td> -->
+      </ng-container>
+    
+      <ng-container matColumnDef="curr_intt">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Current Interest</th>
+        <td mat-cell *matCellDef="let element">{{ element.curr_intt | number : '1.2-2'}}</td>
+        <!-- <td mat-footer-cell *matFooterCellDef>{{ curr_intt | number : '1.2-2'}}</td>
+        <td mat-footer-cell *matFooterCellDef></td> -->
+      </ng-container>
+    
+      <ng-container matColumnDef="outstanding">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Outstanding</th>
+        <td mat-cell *matCellDef="let element">{{ element.outstanding | number : '1.2-2'}}</td>
+        <!-- <td mat-footer-cell *matFooterCellDef>{{ outstanding | number : '1.2-2'}}</td> -->
+      </ng-container>
+    
+      <ng-container matColumnDef="curr_gold_rate">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Current Gold Rate</th>
+        <td mat-cell *matCellDef="let element">{{ element.curr_gold_rate }}</td>
+        <!-- <td mat-footer-cell *matFooterCellDef></td> -->
+      </ng-container>
+    
+      <ng-container matColumnDef="alarm">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Alarm</th>
+        <td mat-cell *matCellDef="let element">{{ element.alarm }}</td>
+        <!-- <td mat-footer-cell *matFooterCellDef></td> -->
+      </ng-container>
+    
+      <ng-container matColumnDef="cust_name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Customer Name</th>
+        <td mat-cell *matCellDef="let element">{{ element.cust_name }}</td>
+      </ng-container>
+    
+      <ng-container matColumnDef="guardian_name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Guardian Name</th>
+        <td mat-cell *matCellDef="let element">{{ element.guardian_name }}</td>
+        <!-- <td mat-footer-cell *matFooterCellDef></td> -->
+      </ng-container>
+    
+      <ng-container matColumnDef="present_address">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Present Address</th>
+        <td mat-cell *matCellDef="let element">{{ element.present_address }}</td>
+        <!-- <td mat-footer-cell *matFooterCellDef></td> -->
+      </ng-container>
+    
+      <!-- Table Header, Rows, and Footer -->
+      <tr mat-header-row *matHeaderRowDef="['mainHeader']"></tr>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      <!-- <tr mat-footer-row *matFooterRowDef="displayedColumns"></tr> -->
+    
+    </table>
+    <mat-paginator [pageSizeOptions]="[5, 50, 200,resultLength]" showFirstLastButtons></mat-paginator>
+
+
+
+
+  <footer>
+  <small>
+    This report is generated through Synergic Banking
+   </small>
+  </footer>
+  </div>
+  <!-- <mat-paginator [length]="resultLength" showFirstLastButtons [pageSizeOptions]="[20,5,10,15,25,50,100,resultLength]" MatPaginator></mat-paginator> -->
+   
+  
+ 
+  </div>
+  
+  <div  class="col-xs-12 col-sm-12 col-md-8 col-lg-8 shadow-sm mb-4 bg-white p-3">
+  <div>
+   <button mat-raised-button type="button" class="btn btn-rounded btn-primary m-1" (click)="closeScreen()" >Close</button>
+   <button mat-raised-button type="button" 
+   class="btn btn-rounded btn-primary m-1" 
+   [useExistingCss]="true"
+   printSectionId="mattable" 
+   ngxPrint>Print</button>
+   <button mat-raised-button type="button" class="btn btn-rounded btn-primary m-1" (click)="onLoadScreen(content)">Retrieve</button>
+ <button mat-raised-button type="button" class="btn btn-rounded btn-primary m-1" (click)="downloadexcel()">Export as EXCEL</button>
+   
+  </div>
+  </div>
+  </div>
+  <loading *ngIf="isLoading"></loading>
+  

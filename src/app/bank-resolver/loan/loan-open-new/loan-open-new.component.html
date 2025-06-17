@@ -1,0 +1,2324 @@
+<ng-container [ngSwitch]="stepperOrientation | async">
+    <!-- <div *ngSwitchCase="'horizontal'">Make your screen smaller to see a vertical stepper</div>
+    <div *ngSwitchCase="'vertical'">Make your screen larger to see a horizontal stepper</div> -->
+  </ng-container>
+  
+  <div *ngIf="showMsg && showMsg.Show" class="col-12 mt-1">
+    <div class="alert alert-dismissible fade show" role="alert" [ngClass]="{'alert-success': showMsg.Type == 0,
+     'alert-warning':showMsg.Type == 1, 'alert-info':showMsg.Type == 2, 'alert-danger':showMsg.Type == 3 }">
+      <strong>{{showMsg.Message}}</strong>
+      <button type="button" class="close" data-dismiss="alert" (click)="closeAlertMsg()" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+  </div>
+  <mat-stepper
+    class="example-stepper" #stepper
+    [orientation]="(stepperOrientation | async)!">
+    
+    <mat-step [stepControl]="firstFormGroup" label="Fill Personal Information"  ><br><hr>
+      <form [formGroup]="firstFormGroup">
+          <div class="form-row">
+            <div class="form-group col-4 border-right">
+             <h4 class="customHeader">Loan Information</h4>
+             <div class="form-group col-12">
+              <small for="loan_type">Loan Type</small>
+              <select
+                style="height:25px; font-size: small; align-content:center; padding-top: 0px; background-color: whitesmoke;"
+                formControlName="loan_acc_cd" (change)="setLoanAccountType($event.target.value)" id="loan_type"
+                class="form-control form-control-sm">
+                <option value="Select Loan Type" [readonly]="true" selected>Select Loan Type</option>
+                <option *ngFor="let l of accountTypeList" [value]="l.acc_type_cd">{{l.acc_type_cd}}-{{l.acc_type_desc}}</option>
+              </select>
+            </div>
+            <div class="form-row " style="padding-left: 15px">
+              <div class="form-group col-10">
+                <small for="cust_cd">Customer ID</small>
+                <input type="text" [readOnly]="true" class="form-control form-control-sm text-capitalize" formControlName="cust_cd" id="cust_cd"
+                  placeholder="Customer ID">
+              </div>
+              <div class="form-group col-2" *ngIf="custKYC" style="padding-top: 22px;">
+                <button type="button" style=" max-height: 32px;" class="btn btn-primary btn-sm mr-2"
+                (click)="getKYCDtls(this.f.cust_cd.value)">KYC
+                   <!-- <i class="fa fa-plus-circle" aria-hidden="true"></i> -->
+                </button>
+              </div>
+            </div>
+            
+              
+              <div class="form-group col-12">
+      
+                <small for="cust_name">Customer Name</small>
+                <div class="input-group">
+                  <input type="text"  class="form-control form-control-sm mkUpper"  autocomplete="chrome-off" formControlName="cust_name"
+                  id="cust_name" placeholder="Name"  (input)="onChangeName()">
+              <div class="input-group-append">
+              <button class="btn btn-primary btn-sm" [readonly]="disabledOnNull" style="font-size:x-small" (click)="suggestCustomer()"><i class="fa fa-search"></i></button>
+      
+              </div>    
+                </div>
+             
+              <ng-container>
+                <div class="suggestions border p-2 " style="width: 220%;"
+                *ngIf="suggestedCustomer && suggestedCustomer!=null">
+      
+      
+                  <table id="customers1">
+                    <tr>
+                      <th> Customer Code / Phone</th>
+                      <th> Name</th>
+                      <th>Guardian Name</th>
+                      <th> Address</th>
+                    </tr>
+                    <tbody *ngFor="let cust of suggestedCustomer" >
+                      <tr  (click)="SelectCustomer(cust)">
+                        <td>
+                          {{cust.cust_cd}}  {{((null == cust.phone) ? '' : ' / '+ cust.phone)}}
+                        </td>
+                        <td>
+                          {{cust.cust_name}}
+                        </td>
+                        <td>
+                          {{cust.guardian_name}}
+                        </td>
+                        <td>
+                          {{cust.permanent_address}}
+                        </td>
+                      </tr>
+                    
+                    </tbody>
+                    
+                  </table>
+                  </div>
+              </ng-container>
+              
+                <div class="suggestions border p-2 " style="width: 200%; font-size: small;"
+                *ngIf="showNoResult">
+               <!-- <strong class="text-danger">" {{this.f.cust_name.value}} " does not match with any customer</strong> -->
+                </div> 
+              </div>
+              
+            </div>
+            <div class="form-group col-8" >
+              <h4 class="customHeader">Personal Information</h4>
+              <div class="form-row">
+                <div class="form-group col-2">
+                  <small for="guardian_name">Guardian Name </small>
+                  <input type="text" class="form-control form-control-sm mkUpper" formControlName="guardian_name" [readonly]="true"
+                    id="guardian_name" placeholder="Guardian Name">
+                </div>
+                <div class="form-group col-2">
+                  <small for="lbr_status">Guardian Relation</small>
+                  <select [readonly]="true" id="lbr_status" class="form-control form-control-sm" formControlName="lbr">
+                    <!-- <option value="" selected [readonly]="true">Choose</option> -->
+                    <option *ngFor="let lbr of lbr_status" value="{{lbr.val}}">{{lbr.val}}</option>
+                   
+                  </select>
+                </div>
+                <div class="form-group col-2">
+                  <small for="dt_of_birth">Date Of Birth </small>
+                  <input [readonly]="true" type="text" class="form-control form-control-sm" formControlName="dt_of_birth" id="dt_of_birth"
+                  placeholder="Date Of Birth ">
+                  
+                </div>
+                <div class="form-group col-2"  >
+                  <small for="sex">Sex </small>
+                  <select [readonly]="true" id="sex" class="form-control form-control-sm" formControlName="sex">
+                    <option selected>Choose...</option>
+                    <option value="M">Male</option>
+                    <option value="F">Female</option>
+                    <option value="O">Others</option>
+                  </select>
+                </div>
+                <div class="form-group col-2"  >
+                  <small for="marital_status">Marital Status</small>
+                  <input [readonly]="true" type="text" class="form-control form-control-sm" formControlName="marital_status" id="marital_status" [readonly]="true"
+                    placeholder="">
+                </div>
+          
+                <div class="form-group col-2">
+                  <small for="catg_cd">Category </small>
+                  <select [readonly]="true" id="catg_cd" class="form-control form-control-sm" formControlName="catg_cd">
+                    <!-- <option *ngIf="categories" [readonly]="true">Choose</option> -->
+                    <option *ngFor="let category of categories" [value]="category.catg_cd" >{{category.catg_desc}}</option>
+                  </select>
+                  
+                </div>
+                <div class="form-group col-2">
+                  <small for="community">Community </small>
+                  <select [readonly]="true" id="community" class="form-control form-control-sm" formControlName="community">
+                    <!-- <option selected [readonly]="true">Choose...</option> -->
+                    <option value="1">Hindu</option>
+                    <option value="2">Muslim</option>
+                    <option value="3">Others</option>
+                  </select>
+                </div>
+                <div class="form-group col-2">
+                  <small for="caste">Caste </small>
+                  <select [readonly]="true" id="caste" class="form-control form-control-sm" formControlName="caste">
+                    <option value="1">General</option>
+                    <option value="2">SC</option>
+                    <option value="3">ST</option>
+                    <option value="4">OBC</option>
+                  </select>
+                </div>
+                <div class="form-group col-2">
+                  <small for="phone">Email</small>
+                  <input [readonly]="true" type="email" class="form-control form-control-sm" formControlName="email_id" id="email_id"
+                    placeholder="Email">
+                </div>
+                <div class="form-group col-2">
+                  <small for="phone">Phone Number  </small>
+                  <input [readonly]="true" type="tel" class="form-control form-control-sm" formControlName="phone" id="phone"
+                    placeholder="Phone Number" maxlength="12">
+                </div>
+                
+                <div class="form-group col-2">
+                  <small for="phone">Aadhaar</small>
+                  <input [readonly]="true" type="tel" class="form-control form-control-sm" formControlName="aadhar" id="aadhar"
+                    placeholder="Aadhar" maxlength="12">
+                </div>
+                <div class="form-group col-2">
+                  <small for="phone">Pan</small>
+                  <input [readonly]="true" type="tel" class="form-control form-control-sm" formControlName="pan" id="pan"
+                    placeholder="Pan" maxlength="12">
+                </div>
+                <div class="form-group col-12">
+                  <small for="phone">Present Address  </small>
+                  <input [readonly]="true" type="tel" class="form-control form-control-sm" formControlName="address" id="address"
+                    placeholder="address" >
+                </div>
+              </div>
+            </div>
+            
+          </div>
+          <div class="form-row" *ngIf="hideJoint">
+            <div class="form-group col-12 border-right">
+              <h1></h1>
+              <h4 class="customHeader">Joint Guarantor Details</h4>
+              <section *ngFor="let t1 of td_accholder; let i = index">
+                <div class="form-row ">
+                  <div class="form-group col-2">
+                    <small for="joint_cust_code">Customer Code</small>
+                    <input style="height:25px" [readonly]="true" type="text" class="form-control form-control-sm text-capitalize"
+                      [(ngModel)]="t1.cust_cd" [ngModelOptions]="{standalone: true}" placeholder="Customer Code" id="joint_cust_code" placeholder="Customer Code">
+                  </div>
+  
+  
+                  <div class="form-group col-6">
+                    <small for="joint_cust_name">Name</small>
+                  <div class="input-group">
+     
+                    <input style="height:25px; text-align-last: left;" type="text"
+                      class="form-control form-control-sm text-capitalize" id="joint_cust_name"
+                      placeholder="Joint Holder Name" [(ngModel)]="t1.acc_holder" [ngModelOptions]="{standalone: true}"
+                      >
+                      <div class="input-group-append">
+                        <button class="btn btn-primary btn-sm" style="font-size:x-small" (click)="suggestJointCustomer(i)">
+                          <i class="fa fa-search"></i>
+                        </button>
+                      </div>
+  
+                    </div>
+                    <div class="suggestions border p-2"
+                      *ngIf="suggestedJointCustomer && i==suggestedCustomerJointHolderIdx">
+                      <!-- <strong> [ Customer Cd / Phone ] Name </strong> -->
+                      <!-- <p style="margin-bottom:.2rem; cursor: pointer;" *ngFor="let jc of suggestedJointCustomer"
+                        (click)="setJointCustDtls(jc.cust_cd , i)">
+                        {{'[' + jc.cust_cd + ' / '
+                        + ((null == jc.phone) ? '' : jc.phone) +'] '
+                        + jc.cust_name}}
+                      </p> -->
+                      <table id="customers1">
+                        <tr>
+                          <th> Customer Code / Phone</th>
+                          <th> Name</th>
+                        </tr>
+                        <tbody *ngFor="let jc of suggestedJointCustomer" >
+                          <tr  (click)="setJointCustDtls(jc.cust_cd , i)">
+                            <td>
+                              {{jc.cust_cd}}  {{((null == jc.phone) ? '' : ' / '+ jc.phone)}}
+                            </td>
+                            <td>
+                              {{jc.cust_name}}
+                  
+                            </td>
+                          </tr>
+                         
+                        </tbody>
+                        
+                      </table>
+                    </div>
+                    <div class="suggestions border p-2" style="width: 150%; font-size: small;"
+                    *ngIf="showNoJoint">
+                    <strong class="text-danger">" {{t1.acc_holder}} does not match with any customer</strong>
+                    <!-- <strong class="text-danger" *ngIf="!resetClicked">" {{this.f.acct_num.value}} " does not match with any customer</strong> -->
+                     </div> 
+                  </div>
+  
+                  <div class="form-group col-2">
+                    <small for="relation">Relation</small> <br>
+                    <select
+                      style="height:25px; text-align-last: left; font-size: small; padding-top: 0px; background-color: whitesmoke;"
+                      id="relation" [ngModelOptions]="{standalone: true}" [(ngModel)]="t1.relation"
+                      (change)="setJointHolderRelation($event.target.value , i)" class="form-control form-control-sm">
+                      <option [value]="t1.relation" [readonly]="true" selected>{{t1.relationId}}-{{t1.relation}}</option>
+                      <option *ngFor="let l of relationship" [value]="l.val">{{l.id}}-{{l.val}}</option>
+                    </select>
+  
+                  </div>
+                  <div class="form-group col-1" style="margin-top: 25px;margin-left: 25px;">
+                    <button type="button" style=" max-height: 27px;" class="btn btn-primary btn-sm mr-2"
+                    (click)="getKYCDtls(t1.cust_cd)">KYC
+                  <!-- <i class="fa fa-plus-circle" aria-hidden="true"></i> -->
+                </button>
+                  </div>
+                </div>
+              </section>
+              <div class="text-right mb-3">
+                <button type="button" style=" max-height: 27px;" class="btn btn-primary btn-sm mr-2"
+                  (click)="addJointHolder()">
+                  <i class="fa fa-plus-circle" aria-hidden="true"></i>
+                </button>
+      
+                <button  type="button" style="max-height: 27px;" class="btn btn-primary btn-sm"
+                  (click)="removeJointHolder()">
+                  <i class="fa fa-minus-circle" aria-hidden="true"></i>
+                </button>
+              </div>
+              <!-- <div class="text-right mb-3">
+              <button mat-raised-button type="button" style="height:22px; padding-top: 0px;"  class="btn btn-primary btn-sm" (click)="addJointHolder()">
+                <i class="fa fa-plus-circle" aria-hidden="true"></i>
+               </button>
+  
+               <button mat-raised-button type="button" style="height:22px; padding-top: 0px;"  class="btn btn-primary btn-sm" (click)="removeJointHolder()">
+                <i class="fa fa-minus-circle" aria-hidden="true"></i>
+               </button>
+              </div> -->
+  
+            </div>
+            <!-- <div class="col-6 border-right">
+      
+              <h1></h1>
+              <h4 class="customHeader">Guarantor Details</h4>
+      
+              <div class="form-row">
+                <div class="form-group col-4">
+                  <small>Guarantor Name</small>
+                  <input class="form-control form-control-sm text-capitalize" id="guaranter_name"
+                    style="height:25px; text-align: left;" type="text" placeholder="Guaranter Name"
+                    [ngModelOptions]="{standalone: true}"  [(ngModel)]="tm_guaranter.gua_name">
+                </div>
+      
+                <div class="form-group col-8">
+                  <small>Guarantor Address</small>
+                  <input class="form-control form-control-sm text-capitalize" id="guaranter_addr"
+                    style="height:25px; text-align: left;"  type="text"
+                    [ngModelOptions]="{standalone: true}" placeholder="Guaranter Address" [(ngModel)]="tm_guaranter.gua_add">
+                </div>
+              </div>
+      
+              <div class="form-row">
+                <div class="form-group col-4">
+                  <small>Guarantor Father's Name</small>
+                  <input class="form-control form-control-sm text-capitalize" id="fathers_name"
+                    style="height:25px; text-align: left;"  type="text"
+                    [ngModelOptions]="{standalone: true}" placeholder="Guaranter Father's Name" [(ngModel)]="tm_guaranter.office_name">
+                </div>
+      
+                <div class="form-group col-3">
+                  <small>Monthly Income</small>
+                  <input class="form-control form-control-sm text-capitalize" id="fathers_name"
+                  [ngModelOptions]="{standalone: true}" style="height:25px; text-align: right;"  type="number"
+                    placeholder="Monthly Income" [(ngModel)]="tm_guaranter.salary">
+                </div>
+      
+                <div class="form-group col-3">
+                  <small>Mobile No.</small>
+                  <input class="form-control form-control-sm text-capitalize" id="guaranter_mobile"
+                    style="height:25px; text-align: left;"  type="text" placeholder="Mobile No"
+                    [ngModelOptions]="{standalone: true}" [(ngModel)]="tm_guaranter.mobile">
+                </div>
+      
+                <div class="form-group col-2 ">
+                  <br>
+                  <div class="container border">
+                    <input type="checkbox" value="false" [(ngModel)]="tm_guaranter.sec_58" [checked]="tm_guaranter.sec_58 == 'Y'"
+                    [ngModelOptions]="{standalone: true}"  (change)="tm_guaranter.sec_58 = $event.target.checked ? 'Y' : 'N' ">
+                    <small> SEC 58</small>
+                  </div>
+                </div>
+      
+              </div>
+      
+      
+      
+            </div> -->
+      
+      
+            
+          </div>
+          
+          
+        <!-- </mat-form-field> -->
+        <div *ngIf="!isRetrive">
+          <button style="float: right;" [disabled]="noCustSelect ||loanIdCreation" class="btn btn-primary btn-sm ml-1 mr-1" mat-button matStepperNext (click)="populateLoanNumber()">Save & Next</button>
+          <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button  (click)="resetFastFrm()">Reset</button>
+          <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button  (click)="backScreen()">Close</button>
+          <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button  (click)="retriveLoanData()">Retrive</button>
+          <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button  (click)="openNetWorth(netWorth)">NetWorth Statement</button>
+          
+        </div>
+        <div *ngIf="isRetrive">
+          <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button matStepperNext >Next</button>
+          <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button  (click)="retriveLoanData()">Retrive</button>
+          <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button  (click)="openNetWorth(netWorth)">NetWorth Statement</button>
+
+        </div>
+      </form>
+    </mat-step>
+    <mat-step [stepControl]="secondFormGroup" label="Fill Security Detais"><br><hr>
+      <form [formGroup]="secondFormGroup" >
+        <div formArrayName="loanDetails">
+          <div *ngFor="let loan of loanDetails.controls; let ind = index" [formGroupName]="ind" >
+
+        <div class="form-row col-10">
+          <h4 style="width: 100%;" class="customHeader">Security Information</h4>
+          <div class="form-group col-12">
+            <div class="form-row">
+              <div class="form-group col-3">
+                <small for="sec_type">Select Security Type</small>
+                <select
+                  id="sec_type"
+                  class="form-control form-control-sm"
+                  (change)="changeSequrity($event.target.value, ind)"
+                  formControlName="sec_type"
+                >
+                  <option *ngIf="securityTypeList" [readonly]="true">Choose</option>
+                  <option *ngFor="let sec of securityTypeList" [value]="sec.sec_type">{{ sec.sec_desc }}</option>
+                </select>
+              </div>
+            
+              <div class="form-group col-2">
+                <small for="loan_id">Loan ID</small>
+                <input [readOnly]="true" type="text" class="form-control form-control-sm" formControlName="loan_id" id="loan_id" placeholder="Loan ID">
+              </div>
+              <div class="form-group col-2">
+                <small for="acc_cd">Account Code</small>
+                <input type="number" [readOnly]="true" class="form-control form-control-sm" formControlName="acc_cd" id="acc_cd" placeholder="Account Code">
+              </div>
+             <div class="form-group col-2">
+                <small for="final_value">Eligibile Value</small>
+                <input  [readOnly]="true" type="number" class="form-control form-control-sm" formControlName="final_value" id="final_value" placeholder="Final Value">
+              </div>
+              </div>
+              
+              <div class="form-group col-12">
+                <div class="form-row" *ngIf="loan.get('sec_type').value == 'D'">
+                  <div class="suggestions border p-2 " style="width:100%;" *ngIf="showLien">
+                    <table id="customers1" *ngIf="isRetrive && ind!=0">
+                      <tr>
+                        <th> Branch</th>
+                        <th> Account Type</th>
+                        <th>Customer Name</th>
+                        <th> Account Number</th>
+                        <th> Opening Date</th>
+                        <th> Maturity Date</th>
+                        <th style="text-align: right;"> Principal</th>
+                        <th style="text-align: right;"> Interest</th>
+                        <th style="text-align: right;"> Balance</th>
+                        <th style="text-align: center;"> Lock/Unlock</th>
+                      </tr>
+                      <tbody  *ngFor="let title of reportData1 let i=index;" >
+                        <tr [ngStyle]="{'background-color': getColor(title.cust_cd)}">
+                          
+                          <td>
+                            <option>{{title.brn_cd}}</option>
+                          </td>
+                          <td>
+                            <option>{{title.acc_type_desc}}</option>
+                          </td>
+                          <td>
+                            <option>{{title.cust_name}}</option>
+                          </td>
+                          <td>
+                            <option>{{title.acc_num}}</option>
+                          </td>
+                          <td>
+                            <option>{{title.opening_dt.substr(0,10)}}</option>
+                          </td>
+                          <td>
+                            <option>{{title.mat_dt=="01/01/0001 00:00"?'Not Required':title.mat_dt.substr(0,10)}}</option>
+                          </td>
+                          <td style="text-align: right;">
+                            <option>{{title.balance}}</option>
+                          </td>
+                          <td style="text-align: right;">
+                            <option>{{title.interest}}</option>
+                          </td>
+                          <td style="text-align: right;">
+                            <option>{{title.total}}</option>
+                          </td>
+                          <td style="text-align: center;">
+                            <input id="toggle"  type="checkbox" [checked]="title.lock_mode=='L'" [value]="title.lock_mode" (change)="onChange(title,$event,ind)" />
+                          </td>
+                        </tr>
+                       
+                      </tbody>
+                      
+                    </table>
+                    <table id="customers1" >
+                      <tr>
+                        <th> Branch</th>
+                        <th> Account Type</th>
+                        <th>Customer Name</th>
+                        <th> Account Number</th>
+                        <th> Opening Date</th>
+                        <th> Maturity Date</th>
+                        <th style="text-align: right;"> Principal</th>
+                        <th style="text-align: right;"> Interest</th>
+                        <th style="text-align: right;"> Balance</th>
+                        <th style="text-align: center;"> Lock/Unlock</th>
+                      </tr>
+                      <tbody  *ngFor="let title of reportData1 let i=index;" >
+                        <tr [ngStyle]="{'background-color': getColor(title.cust_cd)}">
+                          
+                          <td>
+                            <option>{{title.brn_cd}}</option>
+                          </td>
+                          <td>
+                            <option>{{title.acc_type_desc}}</option>
+                          </td>
+                          <td>
+                            <option>{{title.cust_name}}</option>
+                          </td>
+                          <td>
+                            <option>{{title.acc_num}}</option>
+                          </td>
+                          <td>
+                            <option>{{title.opening_dt?.substr(0,10)}}</option>
+                          </td>
+                          <td>
+                            <option>{{title.mat_dt=="01/01/0001 00:00"?'Not Required':title.mat_dt?.substr(0,10)}}</option>
+                          </td>
+                          <td style="text-align: right;">
+                            <option>{{title.balance}}</option>
+                          </td>
+                          <td style="text-align: right;">
+                            <option>{{title.interest}}</option>
+                          </td>
+                          <td style="text-align: right;">
+                            <option>{{title.total}}</option>
+                          </td>
+                          <td style="text-align: center;">
+                            <input id="toggle"  type="checkbox" [checked]="title.lock_mode=='L'" [value]="title.lock_mode" (change)="onChange(title,$event,ind)" />
+                          </td>
+                        </tr>
+                       
+                      </tbody>
+                      
+                    </table>
+                    <button *ngIf="showLien" style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button (click)="setTosecurity(ind)">Click to Add Lien</button>
+
+                    </div>
+                   
+                  <!-- *ngIf="depositSec" -->
+                   <div *ngIf="!showLien" class="form-row">
+                  <div class="form-group col-2"  >
+                    <small for="acc_type_cd">Account Type Code</small>
+                    <input [readOnly]="true" type="number" class="form-control form-control-sm" formControlName="acc_type_cd" id="acc_type_cd" placeholder="Account Type Code">
+                  </div>
+                  <div class="form-group col-2"  >
+                    <small for="acc_num">Account Number</small>
+                    <input [readOnly]="true" type="text" class="form-control form-control-sm" formControlName="acc_num" id="acc_num" placeholder="Account Number">
+                  </div>
+                  <div class="form-group col-2" >
+                    <small for="opn_dt">Opening Date</small>
+                    <input [readOnly]="true" type="text" class="form-control form-control-sm" formControlName="opn_dt" id="opn_dt">
+                  </div>
+                  <div class="form-group col-2" >
+                    <small for="mat_dt">Maturity Date</small>
+                    <input [readOnly]="true" type="text" class="form-control form-control-sm" formControlName="mat_dt" id="mat_dt">
+                  </div>
+                  <div class="form-group col-2" >
+                    <small for="prn_amt">Principal Amount</small>
+                    <input [readOnly]="true" type="number" class="form-control form-control-sm" formControlName="prn_amt" id="prn_amt" placeholder="Principal Amount">
+                  </div>
+                  <div class="form-group col-2" >
+                    <small for="mat_val">Current Value</small>
+                    <input [readOnly]="true" type="number" class="form-control form-control-sm" formControlName="mat_val" id="mat_val" placeholder="Maturity Value">
+                  </div>
+                  <div class="form-group col-2" >
+                    <small for="curr_bal">Current Balance</small>
+                    <input [readOnly]="true" type="number" class="form-control form-control-sm" formControlName="curr_bal" id="curr_bal" placeholder="Current Balance">
+                  </div>
+                  </div>
+                </div>
+                <div *ngIf="loan.get('sec_type').value == 'N'" class="form-row">
+                  
+            <div class="form-group col-2" >
+              <small for="cert_type">Certificate Type</small>
+              <input type="text" class="form-control form-control-sm" formControlName="cert_type" id="cert_type" placeholder="Certificate Type">
+            </div>
+            <div class="form-group col-2" >
+              <small for="cert_name">Certificate Name</small>
+              <input type="text" class="form-control form-control-sm" formControlName="cert_name" id="cert_name" placeholder="Certificate Name">
+            </div>
+            <div class="form-group col-2" >
+              <small for="cert_no">Certificate Number</small>
+              <input type="text" class="form-control form-control-sm" formControlName="cert_no" id="cert_no" placeholder="Certificate Number">
+            </div>
+            <div class="form-group col-2" >
+              <small for="regn_no">Registration Number</small>
+              <input type="text" class="form-control form-control-sm" formControlName="regn_no" id="regn_no" placeholder="Registration Number">
+            </div>
+            <div class="form-group col-2" >
+              <small for="post_off">Post Office</small>
+              <input type="text" class="form-control form-control-sm" formControlName="post_off" id="post_off" placeholder="Post Office">
+            </div>
+            <div class="form-group col-2" >
+              <small for="cert_opn_dt">Certificate Opening Date</small>
+              <input type="date" class="form-control form-control-sm" formControlName="cert_opn_dt" id="cert_opn_dt">
+            </div>
+            <div class="form-group col-2" >
+              <small for="cert_mat_dt">Certificate Maturity Date</small>
+              <input type="date" class="form-control form-control-sm" formControlName="cert_mat_dt" id="cert_mat_dt">
+            </div>
+            <div class="form-group col-2" >
+              <small for="cert_pdlg_dt">Certificate Pledge Date</small>
+              <input type="date" class="form-control form-control-sm" formControlName="cert_pdlg_dt" id="cert_pdlg_dt">
+            </div>
+            <div class="form-group col-2" >
+              <small for="cert_plg_no">Certificate Pledge Number</small>
+              <input type="number" class="form-control form-control-sm" formControlName="cert_plg_no" id="cert_plg_no" >
+            </div>
+            <div class="form-group col-2" >
+              <small for="purchase_value">Purchase Value</small>
+              <input type="number" class="form-control form-control-sm" formControlName="purchase_value" id="purchase_value" placeholder="Purchase Value">
+            </div>
+            <div class="form-group col-2" >
+              <small for="sum_assured">Sum Assured</small>
+              <input type="number" class="form-control form-control-sm" (change)="CCFinalValue($event,ind)" formControlName="sum_assured" id="sum_assured" placeholder="Sum Assured">
+            </div>
+                </div>
+                <div *ngIf="loan.get('sec_type').value == 'L'" class="form-row">
+                  <div class="form-group col-2" >
+                    <small for="pol_type">Policy Type</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="pol_type" id="pol_type" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="pol_name">Policy Name</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="pol_name" id="pol_name" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="pol_no">Policy Number</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="pol_no" id="pol_no" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="pol_opn_dt">Opening Date</small>
+                    <input type="date" class="form-control form-control-sm" formControlName="pol_opn_dt" id="pol_opn_dt" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="pol_mat_dt">Maturity Date</small>
+                    <input type="date" class="form-control form-control-sm" formControlName="pol_mat_dt" id="pol_mat_dt" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="pol_sur_val">Sum Assured</small>
+                    <input type="number" class="form-control form-control-sm" formControlName="pol_sur_val" id="pol_sur_val" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="pol_brn_name">Branch Name</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="pol_brn_name" id="pol_brn_name" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="pol_assgn_no">Assignment Number</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="pol_assgn_no" id="pol_assgn_no" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="pol_assgn_dt">Assignment Date</small>
+                    <input type="date" class="form-control form-control-sm" formControlName="pol_assgn_dt" id="pol_assgn_dt" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="pol_money_bk">Money Back Option</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="pol_money_bk" id="pol_money_bk" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="pol_sum_assured">Policy Surrender Value</small>
+                    <input type="number" class="form-control form-control-sm" formControlName="pol_sum_assured" (change)="licFinalValue($event,ind)" id="pol_sum_assured" />
+                  </div>
+                </div>
+                <div *ngIf="loan.get('sec_type').value == 'H'" class="form-row">
+                  <div class="form-group col-2" >
+                    <small for="prop_type">Property Type</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="prop_type" id="prop_type" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="prop_addr">Property Address</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="prop_addr" id="prop_addr" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="total_land_area">Total Land Area</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="total_land_area" id="total_land_area" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="tot_cv_area">Total Covered Area</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="tot_cv_area" id="tot_cv_area" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="deed_no">Deed Number</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="deed_no" id="deed_no" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="distct">District</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="distct" id="distct" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="ps">Police Station</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="ps" id="ps" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="mouza">Mouza</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="mouza" id="mouza" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="jl_no">JL Number</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="jl_no" id="jl_no" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="rs_kha">RS Kha</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="rs_kha" id="rs_kha" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="lr_kha">LR Kha</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="lr_kha" id="lr_kha" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="rs_dag">RS Dag</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="rs_dag" id="rs_dag" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="lr_dag">LR Dag</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="lr_dag" id="lr_dag" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="deed_muni">Deed Municipality</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="deed_muni" id="deed_muni" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="ward_no">Ward Number</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="ward_no" id="ward_no" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="holding_no">Holding Number</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="holding_no" id="holding_no" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="boundry">Boundary</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="boundry" id="boundry" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="cnst_yr">Construction Year</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="cnst_yr" id="cnst_yr" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="floor_area">Floor Area</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="floor_area" id="floor_area" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="mkt_val">Market Value</small>
+                    <input type="number" class="form-control form-control-sm"  (change)="landFinalValue($event,ind)" formControlName="mkt_val" id="mkt_val" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="tax_upto">Tax Upto</small>
+                    <input type="date" class="form-control form-control-sm" formControlName="tax_upto" id="tax_upto" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="bl_ro_tax">Tax Paid</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="bl_ro_tax" id="bl_ro_tax" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="mort_deed_reg_no">Mortgage Deed Reg. No.</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="mort_deed_reg_no" id="mort_deed_reg_no" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="mort_deed_dt">Mortgage Deed Date</small>
+                    <input type="date" class="form-control form-control-sm" formControlName="mort_deed_dt" id="mort_deed_dt" />
+                  </div>
+                </div>
+                <div *ngIf="loan.get('sec_type').value == 'S'" class="form-row">
+                  <div class="form-group col-2" >
+                    <small for="stock_type">Stock Type</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="stock_type" id="stock_type" />
+                  </div>
+                
+                  <div class="form-group col-2" >
+                    <small for="stock_value">Stock Value</small>
+                    <input type="number" class="form-control form-control-sm" (change)="stockFinalValue($event,ind)" formControlName="stock_value" id="stock_value" step="0.01" />
+                  </div>
+                </div>
+
+                <div *ngIf="loan.get('sec_type').value == 'G'" class="form-row">
+                  <!-- <div class="form-group col-2">
+                    <small for="slab_range">Sanction Range</small> <br>
+                    <input   style="height:25px" [readOnly]="true" type="text" class="form-control form-control-sm text-capitalize"
+                    [(ngModel)]="sanc_perc" [ngModelOptions]="{standalone: true}" id="slab_range" placeholder="Sanction perc" >
+                   
+            
+                  </div> -->
+                  <div class="form-group col-2" >
+                    <small for="slab_range">Sanction Range</small> <br>
+                    <select  #nextField (change)="getInttSlabMain($event.target.value)"
+                      style="height:25px; text-align-last: left; font-size: small; padding-top: 0px; background-color: whitesmoke;"
+                      id="slab_range"  [(ngModel)]="sanc_perc" [ngModelOptions]="{standalone: true}"
+                       class="form-control form-control-sm">
+                      <option  selected>Select a Sanction Range</option>
+                      <option *ngFor="let lk of allSlabList" [value]="lk.sanc_perc" >{{lk.sanc_perc}}%</option>
+                    </select>
+            
+                  </div>
+                  <div class="form-group col-2">
+                    <small for="act_rate">Today Gold Value</small>
+                    <input   style="height:25px" [readOnly]="true" type="Number" class="form-control form-control-sm text-capitalize"
+                      [ngModelOptions]="{standalone: true}" [(ngModel)]="sanc_per_grm" (change)="slabRangeValidationMain($event.target.value)" formControlName="mkt_val"  id="act_rate" placeholder="Rate with in slab range" >
+                      <!-- <div *ngIf="amountError" style="color: red;">{{ amountError }}</div> -->
+                  </div>
+                  <div class="form-group col-2" >
+                    <small for="intt_on_slab">Slab Intt.</small>
+                    <input [readOnly]="true" style="height:25px" type="Number"  class="form-control form-control-sm " 
+                    id="intt_on_slab" placeholder="intt_on_slab" [(ngModel)]="intt_on_slab" [ngModelOptions]="{standalone: true}" formControlName="intt_on_slab">
+                  </div>
+                  <!-- <div class="form-group col-2" *ngIf="isRetrive">
+                    <small for="safe_id">Godsafe Id</small>
+                    <input   style="height:25px" [readOnly]="true" type="text" class="form-control form-control-sm text-capitalize"
+                    [(ngModel)]="safe_id" [ngModelOptions]="{standalone: true}" id="safe_id" placeholder="safe id" >
+                   
+                  </div> -->
+                  <div class="form-group col-2" >
+                    <small for="safe_id">Godsafe Id</small>
+                    
+                    <select (change)="getGoldSafeID($event.target.value)"
+                    style="height:25px; font-size: small; align-content:center; padding-top: 0px; background-color: whitesmoke;"
+                    [(ngModel)]="safe_name " [ngModelOptions]="{standalone: true}"
+                     id="safe_id" class="form-control form-control-sm">
+                    <option >Select Godsafe</option>
+                    <option *ngFor="let t of goldSafeData" [value]="t.goldSafeId">
+                      {{t.goldSafeName}}</option>
+                  </select>
+                  </div>
+                  <div class="form-group col-2" *ngIf="false">
+                    <small for="gold_gross_wt">Gold Gross Weight</small>
+                    <input type="number" class="form-control form-control-sm" formControlName="gold_gross_wt" id="gold_gross_wt" step="0.01" />
+                  </div>
+                
+                  <div class="form-group col-2" *ngIf="false">
+                    <small for="gold_net_wt">Gold Net Weight</small>
+                    <input type="number" class="form-control form-control-sm" formControlName="gold_net_wt" id="gold_net_wt" step="0.01" />
+                  </div>
+                
+                  <div class="form-group col-2" *ngIf="false">
+                    <small for="karat">Karat</small>
+                    <input type="number" class="form-control form-control-sm" formControlName="karat" id="karat" />
+                  </div>
+                
+                  <div class="form-group col-2" *ngIf="false">
+                    <small for="gold_desc">Gold Description</small>
+                    <input type="text" class="form-control form-control-sm" formControlName="gold_desc" id="gold_desc" />
+                  </div>
+                
+                <div class="form-group col-2" *ngIf="false">
+                  <small for="gold_qty">Gold Quantity</small>
+                  <input type="number" class="form-control form-control-sm" formControlName="gold_qty" id="gold_qty" />
+                </div>
+              
+                <div class="form-group col-2" *ngIf="false">
+                  <small for="gold_val">Gold Value</small>
+                  <input type="number" class="form-control form-control-sm" formControlName="gold_val" id="gold_val" step="0.01" />
+                </div>
+              </div>
+              </div>
+              
+          </div>
+        </div>
+        <div *ngIf="loan.get('sec_type').value == 'G'" class="form-row">
+          <div class="col-12" *ngIf="!jewellerySave">
+            <h4 class="customHeader">Jewelry Details</h4>
+            <section *ngFor="let t1 of tdJewelry; let i = index">
+              <div class="form-row ">
+                <div class="form-group col-md-1">
+                  <small for="sl_no">Serial No</small>
+                  <input style="height:25px" [readonly]="true" type="text" class="form-control form-control-sm text-capitalize"
+                    [ngModelOptions]="{standalone: true}" [(ngModel)]="t1.sl_no" placeholder="Serial No" id="sl_no" placeholder="Serial No">
+                </div>
+                <div class="form-group col-md-1" >
+                  <small for="loan_id">Loan Id</small>
+                  <input style="height:25px" type="text"  class="form-control form-control-sm " 
+                  id="Loan No" placeholder="Loan No" [ngModelOptions]="{standalone: true}" [(ngModel)]="t1.loan_id">
+                </div>
+              
+                <div class="form-group col-md-2">
+                  <small for="relation">Item Desc.</small> <br>
+                  <select
+                    style="height:25px; text-align-last: left; font-size: small; padding-top: 0px; background-color: whitesmoke;"
+                    id="relation" [ngModelOptions]="{standalone: true}" [(ngModel)]="t1.desc_val"
+                     class="form-control form-control-sm">
+                    <option [value]="t1.desc_val" selected>{{t1.desc_val}}</option>
+                    <option *ngFor="let l of allJewelryType" [value]="l.goldItemDes">{{l.goldItemDes}}</option>
+                  </select>
+    
+                </div>
+                
+                <div class="form-group col-md-1">
+                  <small for="desc_no">Item No</small>
+                  <input style="height:25px"  type="Number"  min="0" class="form-control form-control-sm text-capitalize"
+                    [ngModelOptions]="{standalone: true}" [(ngModel)]="t1.desc_no"  id="desc_no" placeholder="Item No" (change)="setAllTotal(t1,1,i)">
+                </div>
+                <div class="form-group col-md-1">
+                  <small for="gross_we">Gross Wt.(gm)</small>
+                  <input style="height:25px" type="Number" step="any" min="0" class="form-control form-control-sm text-capitalize"
+                  min="0" step="any"
+                  [ngModelOptions]="{standalone: true}" [(ngModel)]="t1.gross_we"  id="gross_we" placeholder="Gross We." (change)="setAllTotal(t1,2,i)">
+                </div>
+                <div class="form-group col-md-1">
+                  <small for="loss_we">Loss Wt.(gm)</small>
+                  <input style="height:25px" type="Number" step="any" min="0" class="form-control form-control-sm text-capitalize"
+                  min="0" step="any"
+                  [ngModelOptions]="{standalone: true}" [(ngModel)]="t1.alloy_stone_we"  id="loss_we" placeholder="Loss We." (change)="setAllTotal(t1,3,i)">
+                </div>
+                <div class="form-group col-md-1">
+                  <small for="net_we">Net Wt.(gm)</small>
+                  <input style="height:25px" type="Number" step="any" min="0" class="form-control form-control-sm text-capitalize"
+                  min="0" step="any" 
+                  [ngModelOptions]="{standalone: true}" [(ngModel)]="t1.net_we"  id="net_we" placeholder="Net Weight" (change)="setAllTotal(t1,4,i)">
+                </div>
+                <div class="form-group col-md-1">
+                  <small for="purity_we">Purity(%)</small>
+                  <input style="height:25px"  type="Number" class="form-control form-control-sm text-capitalize"
+                    [ngModelOptions]="{standalone: true}" [(ngModel)]="t1.purity_we"  id="purity_we" placeholder="Purity %" (change)="setAllTotal(t1,5,i)">
+                </div>
+                <div class="form-group col-md-1">
+                  <small for="act_we">24 krt gold in (Gm)</small>
+                  <input style="height:25px" [readonly]="true" type="Number" class="form-control form-control-sm text-capitalize"
+                    [ngModelOptions]="{standalone: true}" [(ngModel)]="t1.act_we"  id="act_we" placeholder="24 krt gold" (change)="setAllTotal(t1,6,i)">
+                </div>
+                <div class="form-group col-md-1">
+                  <small for="net_value">Value of gold</small>
+                  <input [readonly]="true" style="height:25px"type="Number" class="form-control form-control-sm text-capitalize"
+                    [ngModelOptions]="{standalone: true}" [(ngModel)]="t1.net_value"  id="net_value" placeholder="Value of gold Ornaments" (change)="setAllTotal(t1,7,i)">
+                </div>
+                <div class="form-group col-md-1">
+                  <button  type="button" style="height: 39px;width: 30px;margin-top: 20px;" class="btn btn-primary btn-sm"
+                (click)="removeJewelry(i)">
+                <i class="fa fa-minus-circle" aria-hidden="true"></i>
+              </button>
+                </div>
+
+               
+                
+              </div>
+              
+            </section>
+            <hr><br>
+              <div class="form-row " >
+                <div class="form-group col-3">
+                  &nbsp;
+                </div>
+                <div class="form-group col-1">
+                  <input style="height:25px" [readonly]="true" type="text" class="form-control form-control-sm text-capitalize"
+                   value="Total">
+                </div>
+                <div class="form-group col-1">
+                  <input style="height:25px" [readonly]="true" type="Number" class="form-control form-control-sm text-capitalize"
+                    [ngModelOptions]="{standalone: true}" [(ngModel)]="tot_desc_no "  placeholder="Total Item">
+                </div>
+                
+                <div class="form-group col-1">
+                  <input style="height:25px" [readonly]="true" type="Number" class="form-control form-control-sm text-capitalize"
+                    [ngModelOptions]="{standalone: true}" [(ngModel)]="tot_gross_we"  id="tot_gross_we" placeholder="Total gross We">
+                </div>
+                <div class="form-group col-1">
+                  <input style="height:25px" [readonly]="true" type="Number" class="form-control form-control-sm text-capitalize"
+                    [ngModelOptions]="{standalone: true}" [(ngModel)]="tot_alloy_stone_we"  id="tot_alloy_stone_we" placeholder="Total loss We">
+                </div>
+                <div class="form-group col-1">
+                  <input style="height:25px" [readonly]="true" type="Number" class="form-control form-control-sm text-capitalize"
+                    [ngModelOptions]="{standalone: true}" [(ngModel)]="tot_net_we"  id="net_we" placeholder="Total Net Weight">
+                </div>
+                <div class="form-group col-1">&nbsp;</div>
+                <div class="form-group col-1">
+                  <input style="height:25px" [readonly]="true" type="text" class="form-control form-control-sm text-capitalize"
+                    [ngModelOptions]="{standalone: true}" [(ngModel)]="tot_act_we"  id="act_we" placeholder="Total Equivalent We of 22 krt">
+                </div>
+                
+                <div class="form-group col-1">
+                  <input style="height:25px" [readonly]="true" type="text" class="form-control form-control-sm text-capitalize"
+                    [ngModelOptions]="{standalone: true}" [(ngModel)]="tot_net_value"  id="net_value" placeholder="Total Value of gold Ornaments">
+                </div>
+                <div class="form-group col-1">
+                  <button  type="button" style="height: 39px;width: 30px;" class="btn btn-primary btn-sm"
+                  (click)="addJewelry()">
+                  <i class="fa fa-plus-circle" aria-hidden="true"></i>
+                </button>
+                </div>
+              </div>
+            <!-- <div class="text-right mb-3">
+              <button type="button" style=" max-height: 27px;" class="btn btn-primary btn-sm mr-2"
+                (click)="addJewelry()">
+                <i class="fa fa-plus-circle" aria-hidden="true"></i>
+              </button>
+    
+              <button  type="button" style="max-height: 27px;" class="btn btn-primary btn-sm"
+                (click)="removeJewelry()">
+                <i class="fa fa-minus-circle" aria-hidden="true"></i>
+              </button>
+            </div> -->
+            <div class="form-row">
+            <table #tbl style="width: 100%;">
+            
+            <tr>
+              <td>Loan eligibility of RS.</td>
+              <td>{{tot_eligibility| number : '1.2-2'}}</td>
+              <td style="text-align: end;" *ngIf="!isRetrive">
+                
+                <button [disabled]="tot_eligibility==0"  type="button" class="btn btn-primary btn-sm"
+                (click)="saveGoldSequrity()">Save Gold Jewellery Items  
+                </button>
+                
+              </td>
+              <td style="text-align: end;" *ngIf="isRetrive">
+                <button *ngIf=" userType === 'A'"  type="button" class="btn btn-primary btn-sm" matStepperNext
+                (click)="updateGoldSequrity()">Update Gold Jewellery Items  
+                </button>
+              </td>
+            </tr>
+            <!-- <tr>
+              <td>Loan Sectioned of RS.</td>
+              <td>{{this.tot_sanction | number : '1.2-2'}}</td>
+            </tr> -->
+            </table>
+            
+          </div>
+            
+    
+          </div>
+        </div>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <button *ngIf="loan.get('sec_type').value != 'G'&& ind!=0"type="button" style="float: right;height: 39px;width: 30px;" class="btn btn-primary btn-sm"
+        (click)="removeLoanDetail(ind)">
+        <i class="fa fa-minus-circle" aria-hidden="true"></i>
+      </button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      <button *ngIf="loan.get('sec_type').value != 'G'" type="button" style="float: right;height: 39px;width: 30px;" class="btn btn-primary btn-sm"
+                  (click)="addLoanDetail()">
+                  <i class="fa fa-plus-circle" aria-hidden="true"></i>
+                </button>
+        <!-- <button type="button" (click)="removeLoanDetail(i)">Remove</button> -->
+      </div>
+      </div>
+      
+      <!-- <button type="button" (click)="addLoanDetail()">Add New Loan Detail</button> -->
+      <hr />
+      <div *ngIf="isRetrive && userType === 'A' && this.selectedAccType!=24043">
+        <button style="float: right;"  class="btn btn-primary btn-sm ml-1 mr-1" mat-button matStepperNext *ngIf="!jewlSecuritySave" (click)="UpdateSecurity()">Update and Next</button>
+
+      </div>
+      <div *ngIf="isRetrive ">
+        <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button  (click)="backScreen()">Close</button>
+        <button style="float: right;"  class="btn btn-primary btn-sm ml-1 mr-1" mat-button matStepperNext > Next</button>
+
+      </div>
+      <div *ngIf="!isRetrive">
+        
+        <!-- <button style="float: right;" [disabled]="jewellerySave" class="btn btn-primary btn-sm ml-1 mr-1" mat-button matStepperNext *ngIf="jewlSecuritySave" (click)="UpdateSecurity()">Update and Next</button> -->
+        <button style="float: right;" [disabled]="!jewellerySave && selectedAccType=='24043'" class="btn btn-primary btn-sm ml-1 mr-1" mat-button matStepperNext *ngIf="!jewlSecuritySave" (click)="saveSecurity()">Save and Next</button>
+        <!-- <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button (click)="resetFullForm()">Reset Security From</button> -->
+        
+        <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button  (click)="backScreen()">Close</button>
+
+        <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button matStepperPrevious (click)="resetFullForm()">Back</button>
+        <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button matStepperNext *ngIf="selectedAccType==24041||selectedAccType==24045" (click)="skipSequrity()">Skip Security</button>
+      </div>
+    </form>
+      
+    </mat-step>
+    <mat-step [stepControl]="thirdFormGroup" label="Fill Sanction Details" >
+      <form [formGroup]="thirdFormGroup">
+        <h4 class="customHeader">Sanction Details</h4>
+        <div class="form-group col-12">
+         <div class="form-row">
+            <div class="form-group col-2">
+              <small for=due_date>First Due Date </small><span class="text-danger">*</span>
+              <div class="input-group">
+                <input class="form-control form-control-sm text-capitalize" id="due_date" 
+                  style="height:25px; text-align: right;" bsDatepicker  [ngModelOptions]="{standalone: true}"
+                  [bsConfig]="{ dateInputFormat: 'DD/MM/YYYY', containerClass:'theme-dark-blue' }" [disabled]="isRetrive"
+                  [(ngModel)]="tm_loan_all.instl_start_dt" type="text" placeholder="DD/MM/YYYY" (ngModelChange)="rep_stDT()">
+              </div>
+            </div>
+            <div class="form-group col-2">
+              <small for=curr_int_rate>Current Interest Rate</small><span class="text-danger">*</span>
+              <input class="form-control form-control-sm text-capitalize" *ngIf="!isRetrive"
+                id="curr_int_rate" [ngModelOptions]="{standalone: true}" [disabled]="isRetrive"
+                style="height:25px; text-align: right; float: none;" type="number" min="0" step='any'
+                [(ngModel)]="tm_loan_all.curr_intt_rate"  placeholder="Curr Int Rate">
+                <input class="form-control form-control-sm text-capitalize" *ngIf="isRetrive"
+                id="curr_int_rate" [ngModelOptions]="{standalone: true}" [disabled]="isRetrive"
+                style="height:25px; text-align: right; float: none;" type="number" min="0" step='any'
+                [(ngModel)]="intt_on_slab"  placeholder="Curr Int Rate">
+            </div>
+      
+      
+            <div class="form-group col-2">
+              <small>Instalment No</small><span class="text-danger">*</span>
+              <input class="form-control form-control-sm text-capitalize"
+                 id="instl_no" [ngModelOptions]="{standalone: true}" [disabled]="userType!='A'"
+                style="height:25px; text-align: right;" type="number" min="0" step='any' [(ngModel)]="tm_loan_all.instl_no"
+                placeholder="Instalment No">
+            </div>
+      
+            <div class="form-group col-2">
+              <small>Installment Type</small><span class="text-danger">*</span>
+              <select [ngModelOptions]="{standalone: true}" [disabled]="userType!='A'"
+                style="height:25px; font-size: small; align-content:center; padding-top: 0px; background-color: whitesmoke;"
+               
+                (change)="setInstalPeriod($event.target.value)" [(ngModel)]="tm_loan_all.piriodicity" id="loan_type"
+                class="form-control form-control-sm">
+                <option [value]="tm_loan_all.piriodicity" [readonly]="true" selected>
+                  {{tm_loan_all.piriodicity}}-{{tm_loan_all.instalmentTypeDesc}}</option>
+                <option *ngFor="let l of instalmentTypeList" [value]="l.desc_type">{{l.desc_type}}-{{l.ins_desc}}</option>
+              </select>
+            </div>
+      
+            <div class="form-group col-2">
+              <small>Repayment Formula</small><span class="text-danger">*</span>
+              <select [ngModelOptions]="{standalone: true}" [disabled]="userType!='A'"
+                style="height:25px; font-size: small; align-content:center; padding-top: 0px; background-color: whitesmoke;"
+               
+                (change)="setRepaymentFormula($event.target.value)" [(ngModel)]="tm_loan_all.emi_formula_no" id="loan_type"
+                class="form-control form-control-sm">
+                <option  selected>Select</option>
+                <option *ngFor="let l of repaymentFormulaList" [value]="l.formula_no">{{l.formula_desc}}</option>
+              </select>
+            </div>
+      
+            <!-- <div class="form-group col-1 "></div> -->
+            <div class="form-group col-2 " >
+            
+                <small>Ledger Folio No.</small>
+                <input class="form-control form-control-sm text-capitalize" [disabled]="isRetrive"
+                   id="bond_no" [ngModelOptions]="{standalone: true}"
+                  style="height:25px; text-align: right;" [(ngModel)]="tm_loan_all.loan_acc_no" type="text" placeholder="Ledger Folio No">
+             
+           
+            </div>
+            
+            </div>
+
+        </div>
+        <div class="form-group col-12">
+          <div class="form-row">
+            <div class="form-group col-2">
+              <small for="loan_id">Loan ID</small>
+              <input [readOnly]="true" type="text" class="form-control form-control-sm" formControlName="loan_id" id="loan_id" placeholder="Loan ID">
+            </div>
+            <div class="form-group col-2">
+              <small for="acc_cd">Account Code</small>
+              <input type="number" [readOnly]="true" class="form-control form-control-sm" formControlName="acc_cd" id="acc_cd" placeholder="Account Code">
+            </div>
+            <div class="form-group col-2">
+              <small>Sector</small><span class="text-danger">*</span>
+              <select
+                style="height:25px; font-size: small; align-content:center; padding-top: 0px; background-color: whitesmoke;"
+                 formControlName="sector_cd"
+                (change)="setSectorType($event.target.value )" id="sec_type" 
+                class="form-control form-control-sm">
+                <option >Select Sector</option>
+                <option *ngFor="let t of sectorList" [value]="t.sector_cd">{{t.sector_desc}}</option>
+              </select>
+            </div>
+    
+            <div class="form-group col-2">
+              <small>Activity</small><span class="text-danger">*</span>
+              <select
+                style="height:25px; font-size: small; align-content:center; padding-top: 0px; background-color: whitesmoke;"
+                 formControlName="activity_cd"
+                (change)="setActivityType($event.target.value )" id="act_type" class="form-control form-control-sm">
+                <option >Select Activity</option>
+                <option *ngFor="let t of activityList" [value]="t.activity_cd">
+                  {{t.activity_desc}}</option>
+              </select>
+            </div>
+            <div class="form-group col-1">
+              <small>Sanction Amount</small><span class="text-danger">*</span>
+              <input class="form-control form-control-sm text-capitalize" (change)="sancAmtChange($event.target.value)"
+                formControlName="sanc_amt" style="height:25px; text-align: right;"
+                id="sanc_amount" type="number" min="0" step='any' placeholder="Sanction Amount">
+            </div>
+            <div class="form-group col-1">
+              <small>Sanc No</small>
+              <input class="form-control form-control-sm text-capitalize" id="l.sanc_no"
+                style="height:25px; text-align: right;" [readonly]="true"
+                formControlName="sanc_no" type="number" min="0" step='any' placeholder="Sanction No">
+            </div>
+            
+            <div class="form-group col-2">
+              <small for=sanc_date>Sanction Date<span class="text-danger">*</span></small>
+              <div class="input-group">
+                <input class="form-control form-control-sm text-capitalize" [readonly]="true" id="sanc_date"
+                  style="height:25px; text-align: right;" bsDatepicker
+                  [bsConfig]="{ dateInputFormat: 'DD/MM/YYYY', containerClass:'theme-dark-blue' }"
+                  
+                  formControlName="sanc_date" type="text" placeholder="DD/MM/YYYY">
+              </div>
+            </div>
+            <!-- <div class="form-group col-2">
+              <small for=validity_dt>Sanction Validity<span class="text-danger">*</span></small>
+              <div class="input-group">
+                <input class="form-control form-control-sm text-capitalize" id="validity_dt"
+                  style="height:25px; text-align: right;" bsDatepicker
+                  [bsConfig]="{ dateInputFormat: 'DD/MM/YYYY', containerClass:'theme-dark-blue' }"
+                  formControlName="validity_dt" type="text" placeholder="DD/MM/YYYY"
+                  [ngModelOptions]="{standalone: true}"
+                   [(ngModel)]="sanc_validity">
+              </div>
+            </div> -->
+          </div>
+        </div>
+        
+        
+       
+
+
+        
+        <!-- <section *ngFor="let ls of tm_loan_sanction_dtls; let i = index">
+          <div class="form-row">
+            
+            <div class="form-group col-3">
+              <small>Sector</small><span class="text-danger">*</span>
+              <select
+                style="height:25px; font-size: small; align-content:center; padding-top: 0px; background-color: whitesmoke;"
+                [disabled]="disableAll == 'Y'|| appvSanction" [(ngModel)]="ls.sector_cd"
+                (change)="setSectorType($event.target.value , i)" id="sec_type" 
+                class="form-control form-control-sm">
+                <option >Select Sector</option>
+                <option *ngFor="let t of sectorList" [value]="t.sector_cd">{{t.sector_desc}}</option>
+              </select>
+            </div>
+
+            <div class="form-group col-2">
+              <small>Activity</small><span class="text-danger">*</span>
+              <select
+                style="height:25px; font-size: small; align-content:center; padding-top: 0px; background-color: whitesmoke;"
+                [disabled]="disableAll == 'Y' || appvSanction" [(ngModel)]="ls.activity_cd"
+                (change)="setActivityType($event.target.value , i)" id="act_type" class="form-control form-control-sm">
+                <option >Select Activity</option>
+                <option *ngFor="let t of selectedActivityList" [value]="t.activity_cd">
+                  {{t.activity_desc}}</option>
+              </select>
+            </div>
+
+
+            <div class="form-group col-2">
+              <small>Activity Details</small><span class="text-danger">*</span>
+              <select
+                style="height:25px; font-size: small; align-content:center; padding-top: 0px; background-color: whitesmoke;"
+                [disabled]="disableAll == 'Y' ||appvSanction " [(ngModel)]="ls.crop_cd" (change)="setCorpType($event.target.value , i)"
+                id="act_type" class="form-control form-control-sm">
+                <option >Select Activity</option>
+                <option *ngFor="let t of selectedCorpList" [value]="t.crop_cd">{{t.crop_cd}}-{{t.crop_desc}}</option>
+              </select>
+            </div>
+
+            <div class="form-group col-2">
+              <small>Sanction Amount</small><span class="text-danger">*</span>
+              <input class="form-control form-control-sm text-capitalize"
+                [disabled]="(tm_loan_all.acc_cd==23103 && ls.crop_cd !== '00')|| disableAll == 'Y' || ls.approval_status == 'A'"
+                (change)="setValidityDate(i)" [(ngModel)]="ls.sanc_amt" style="height:25px; text-align: right;"
+                id="sanc_amount" type="number" min="0" step='any' placeholder="Sanction Amount">
+            </div>
+
+
+            <div class="form-group col-2">
+              <small for=due_date>Validity Date</small><span class="text-danger">*</span>
+              <div class="input-group">
+                <input class="form-control form-control-sm text-capitalize" id="validity_date" [disabled]="disableAll == 'Y' || ls.approval_status == 'A'"
+                  style="height:25px; text-align: right;" bsDatepicker
+                  [bsConfig]="{ dateInputFormat: 'DD/MM/YYYY', containerClass:'theme-dark-blue' }" type="text" 
+                  [(ngModel)]="ls.due_dt" type="text" placeholder="DD/MM/YYYY">
+              </div>
+            </div>
+
+            
+          </div>
+        </section> -->
+        <div *ngIf="!isRetrive">
+          <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button matStepperNext [disabled]="!jewlSecuritySave" (click)="previewData()"> Preview All Data</button>
+          <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button matStepperPrevious>Back</button>
+          <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button  (click)="backScreen()">Close</button>
+        </div>
+        <div *ngIf="isRetrive">
+          <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button matStepperNext [disabled]="userType!='A'" (click)="previewData()"> Preview All Data</button>
+          <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button matStepperPrevious>Back</button>
+          <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button  (click)="backScreen()">Close</button>
+         
+        </div>
+      </form>
+    </mat-step>
+    <mat-step>
+      <ng-template matStepLabel>Preview </ng-template>
+      <div class="team-boxed">
+        <div class="container">
+            <div class="row people">
+                <div class="col-md-6 col-lg-12 item">
+                  <div class="box" >
+                    <form [formGroup]="firstFormGroup">
+                      <div class="form-row">
+                        <div class="form-group col-4 border-right">
+                         <h4 class="customHeader">Loan Information</h4>
+                         <div class="form-group col-12">
+                          <small for="loan_type">Loan Type</small>
+                          <select  [readonly]="true" disabled
+                            style="height:25px; font-size: small; align-content:center; padding-top: 0px; background-color: whitesmoke;"
+                            formControlName="loan_acc_cd"  id="loan_type"
+                            class="form-control form-control-sm readonly-field">
+                            <!-- <option value="Select Loan Type" [readonly]="true" selected>Select Loan Type</option> -->
+                            <option *ngFor="let l of accountTypeList2" [value]="selectedAccType">{{l.acc_type_cd}}-{{l.acc_type_desc}}</option>
+                          </select>
+                        </div>
+                          <div class="form-group col-12">
+                            <small for="cust_cd">Customer ID</small>
+                            <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field text-capitalize" formControlName="cust_cd" id="cust_cd"
+                              placeholder="Customer ID">
+                          </div>
+                          <div class="form-group col-12">
+                  
+                            <small for="cust_name">Customer Name</small>
+                            <div class="input-group">
+                              <input type="text" [readonly]="true"  class="form-control form-control-sm readonly-field mkUpper"  autocomplete="chrome-off" formControlName="cust_name"
+                              id="cust_name" placeholder="Name"  (input)="onChangeName()">
+                          <div class="input-group-append">
+                          <button class="btn btn-primary btn-sm" [readonly]="disabledOnNull" style="font-size:x-small" (click)="suggestCustomer()"><i class="fa fa-search"></i></button>
+                  
+                          </div>    
+                            </div>
+                          </div>
+                          
+                        </div>
+                        <div class="form-group col-8" >
+                          <h4 class="customHeader">Personal Information</h4>
+                          <div class="form-row">
+                            <div class="form-group col-3">
+                              <small for="guardian_name">Guardian Name </small>
+                              <input type="text" class="form-control form-control-sm readonly-field mkUpper" formControlName="guardian_name" [readonly]="true"
+                                id="guardian_name" placeholder="Guardian Name">
+                            </div>
+                            <div class="form-group col-2">
+                              <small for="lbr_status">Guardian Relation</small>
+                              <select [readonly]="true" id="lbr_status" class="form-control form-control-sm readonly-field" formControlName="lbr">
+                                <!-- <option value="" selected [readonly]="true">Choose</option> -->
+                                <option *ngFor="let lbr of lbr_status" value="{{lbr.val}}">{{lbr.val}}</option>
+                               
+                              </select>
+                            </div>
+                            <div class="form-group col-2">
+                              <small for="dt_of_birth">Date Of Birth </small>
+                              <input [readonly]="true" type="text" class="form-control form-control-sm readonly-field" formControlName="dt_of_birth" id="dt_of_birth"
+                              placeholder="Date Of Birth ">
+                              
+                            </div>
+                            <div class="form-group col-1"  >
+                              <small for="sex">Sex </small>
+                              <select [readonly]="true" id="sex" class="form-control form-control-sm readonly-field" formControlName="sex">
+                                <option selected>Choose...</option>
+                                <option value="M">Male</option>
+                                <option value="F">Female</option>
+                                <option value="O">Others</option>
+                              </select>
+                            </div>
+                            <div class="form-group col-2"  >
+                              <small for="marital_status">Marital Status</small>
+                              <input [readonly]="true" type="text" class="form-control form-control-sm readonly-field" formControlName="marital_status" id="marital_status" [readonly]="true"
+                                placeholder="">
+                            </div>
+                      
+                            <div class="form-group col-2">
+                              <small for="catg_cd">Category </small>
+                              <select [readonly]="true" id="catg_cd" class="form-control form-control-sm readonly-field" formControlName="catg_cd">
+                                <!-- <option *ngIf="categories" [readonly]="true">Choose</option> -->
+                                <option *ngFor="let category of categories" [value]="category.catg_cd" >{{category.catg_desc}}</option>
+                              </select>
+                              
+                            </div>
+                            <div class="form-group col-2">
+                              <small for="community">Community </small>
+                              <select [readonly]="true" id="community" class="form-control form-control-sm readonly-field" formControlName="community">
+                                <!-- <option selected [readonly]="true">Choose...</option> -->
+                                <option value="1">Hindu</option>
+                                <option value="2">Muslim</option>
+                                <option value="3">Others</option>
+                              </select>
+                            </div>
+                            <div class="form-group col-2">
+                              <small for="caste">Caste </small>
+                              <select [readonly]="true" id="caste" class="form-control form-control-sm readonly-field" formControlName="caste">
+                                <option value="1">General</option>
+                                <option value="2">SC</option>
+                                <option value="3">ST</option>
+                                <option value="4">OBC</option>
+                              </select>
+                            </div>
+                            <div class="form-group col-2">
+                              <small for="phone">Email</small>
+                              <input [readonly]="true" type="email" class="form-control form-control-sm readonly-field" formControlName="email_id" id="email_id"
+                                placeholder="Email">
+                            </div>
+                            <div class="form-group col-2">
+                              <small for="phone">Phone Number  </small>
+                              <input [readonly]="true" type="tel" class="form-control form-control-sm readonly-field" formControlName="phone" id="phone"
+                                placeholder="Phone Number" maxlength="12">
+                            </div>
+                            
+                            <div class="form-group col-2">
+                              <small for="phone">Aadhar</small>
+                              <input [readonly]="true" type="tel" class="form-control form-control-sm readonly-field" formControlName="aadhar" id="aadhar"
+                                placeholder="Aadhar" maxlength="12">
+                            </div>
+                            <div class="form-group col-2">
+                              <small for="phone">Pan</small>
+                              <input [readonly]="true" type="tel" class="form-control form-control-sm readonly-field" formControlName="pan" id="pan"
+                                placeholder="Pan" maxlength="12">
+                            </div>
+                            <div class="form-group col-12">
+                              <small for="phone">Present Address  </small>
+                              <input [readonly]="true" type="tel" class="form-control form-control-sm readonly-field" formControlName="address" id="address"
+                                placeholder="address" >
+                            </div>
+                          </div>
+                        </div>
+                        
+                      </div>
+                      
+                    
+                  </form>
+                      <!-- <p class="title">Address: {{f.permanent_address?.value}}</p> -->
+                      <!-- <p class="description">Aenean tortor est, vulputate quis leo in, vehicula rhoncus lacus. Praesent aliquam in tellus eu gravida. Aliquam varius finibus est, et interdum justo suscipit id. Etiam dictum feugiat tellus, a semper massa. </p> -->
+                      <!-- <div class="social"><a href="#"><i class="fa fa-facebook-official"></i></a><a href="#"><i class="fa fa-twitter"></i></a><a href="#"><i class="fa fa-instagram"></i></a></div> -->
+                  </div>
+                  <div class="box" >
+                    <!-- <img class="rounded-circle" src="./assets/images/user.png"> -->
+                    <h4 class="customHeader">Joint Holder Information</h4>
+                    <section *ngFor="let t1 of td_accholder; let i = index">
+                      <div class="form-row ">
+                        <div class="form-group col-3">
+                          <small for="joint_cust_code">Customer Code</small>
+                          <input style="height:25px" [readonly]="true" type="text" class="form-control form-control-sm readonly-field text-capitalize"
+                            [(ngModel)]="t1.cust_cd" [ngModelOptions]="{standalone: true}" placeholder="Customer Code" id="joint_cust_code" placeholder="Customer Code">
+                        </div>
+        
+        
+                        <div class="form-group col-6">
+                          <small for="joint_cust_name">Name</small>
+                        <div class="input-group">
+           
+                          <input style="height:25px; text-align-last: left;" type="text" [readonly]="true"
+                            class="form-control form-control-sm readonly-field text-capitalize" id="joint_cust_name"
+                            placeholder="Joint Holder Name" [(ngModel)]="t1.acc_holder" [ngModelOptions]="{standalone: true}"
+                            >
+                            
+        
+                          </div>
+                          
+                        </div>
+        
+                        <div class="form-group col-3">
+                          <small for="relation">Relation</small> <br>
+                          <select [readonly]="true"
+                            style="height:25px; text-align-last: left; font-size: small; padding-top: 0px; background-color: whitesmoke;"
+                            id="relation" [ngModelOptions]="{standalone: true}" [(ngModel)]="t1.relation"
+                            (change)="setJointHolderRelation($event.target.value , i)" class="form-control form-control-sm readonly-field">
+                            <option [value]="t1.relation" [readonly]="true" selected>{{t1.relationId}}-{{t1.relation}}</option>
+                            <option *ngFor="let l of relationship" [value]="l.val">{{l.id}}-{{l.val}}</option>
+                          </select>
+        
+                        </div>
+                      </div>
+                    </section>
+                    
+                  </div>
+                  <div class="box" >
+                    <h4 class="customHeader">Guaranter Details</h4>
+            
+                    <div class="form-row">
+                      <div class="form-group col-4">
+                        <small>Guaranter Name</small>
+                        <input class="form-control form-control-sm readonly-field text-capitalize" id="guaranter_name"
+                          style="height:25px; text-align: left;" type="text" placeholder="Guaranter Name"
+                          [ngModelOptions]="{standalone: true}"  [(ngModel)]="tm_guaranter.gua_name">
+                      </div>
+            
+                      <div class="form-group col-8">
+                        <small>Guaranter Address</small>
+                        <input class="form-control form-control-sm readonly-field text-capitalize" id="guaranter_addr"
+                          style="height:25px; text-align: left;"  type="text"
+                          [ngModelOptions]="{standalone: true}" placeholder="Guaranter Address" [(ngModel)]="tm_guaranter.gua_add">
+                      </div>
+                    </div>
+            
+                    <div class="form-row">
+                      <div class="form-group col-4">
+                        <small>Guaranter Father's Name</small>
+                        <input class="form-control form-control-sm readonly-field text-capitalize" id="fathers_name"
+                          style="height:25px; text-align: left;"  type="text"
+                          [ngModelOptions]="{standalone: true}" placeholder="Guaranter Father's Name" [(ngModel)]="tm_guaranter.office_name">
+                      </div>
+            
+                      <div class="form-group col-3">
+                        <small>Monthly Income</small>
+                        <input class="form-control form-control-sm readonly-field text-capitalize" id="fathers_name"
+                        [ngModelOptions]="{standalone: true}" style="height:25px; text-align: right;"  type="number"
+                          placeholder="Monthly Income" [(ngModel)]="tm_guaranter.salary">
+                      </div>
+            
+                      <div class="form-group col-3">
+                        <small>Mobile No.</small>
+                        <input class="form-control form-control-sm readonly-field text-capitalize" id="guaranter_mobile"
+                          style="height:25px; text-align: left;"  type="text" placeholder="Mobile No"
+                          [ngModelOptions]="{standalone: true}" [(ngModel)]="tm_guaranter.mobile">
+                      </div>
+            
+                      <div class="form-group col-2 ">
+                        <br>
+                        <div class="container border">
+                          <input type="checkbox" value="false" [(ngModel)]="tm_guaranter.sec_58" [checked]="tm_guaranter.sec_58 == 'Y'"
+                          [ngModelOptions]="{standalone: true}"  (change)="tm_guaranter.sec_58 = $event.target.checked ? 'Y' : 'N' ">
+                          <small> SEC 58</small>
+                        </div>
+                      </div>
+            
+                    </div>
+                  </div>
+                    <div class="box" >
+                      <!-- <img class="rounded-circle" src="./assets/images/user.png"> -->
+                    <h4 class="customHeader">Security Information</h4>
+                    <form [formGroup]="secondFormGroup" >
+                      <div formArrayName="loanDetails">
+                        <div *ngFor="let loan of loanDetails.controls; let i = index" [formGroupName]="i" >
+                        <div class="form-group col-12">
+                          <div class="form-row">
+                            <div class="form-group col-3 readonly-field">
+                              <small for="sec_type">Select Security Type</small>
+                              <input type="text" [value]="loan.get('sec_type').value == 'G'?'Gold'
+                              :loan.get('sec_type').value == 'D'?'Deposit'
+                              :loan.get('sec_type').value == 'L'?'LIC'
+                              :loan.get('sec_type').value == 'N'?'Govt. Cert'
+                              :loan.get('sec_type').value == 'H'?'House/Land'
+                              :'Stock'" class="form-control form-control-sm readonly-field" [readonly]="true" name="sec_type" formControlName="sec_type" id="">
+                              <!-- <select 
+                                id="sec_type" [readonly]="true"
+                                class="form-control form-control-sm readonly-field "
+                                (change)="changeSequrity($event.target.value, i)"
+                                formControlName="sec_type"
+                              >
+                               <option [readonly]="true" *ngFor="let sec of securityTypeList" [value]="sec.sec_type">{{ sec.sec_desc }}</option>
+                              </select> -->
+                            </div>
+                          
+                            <div class="form-group col-2">
+                              <small for="loan_id">Loan ID</small>
+                              <input [readonly]="true" type="text" class="form-control form-control-sm readonly-field" formControlName="loan_id" id="loan_id" placeholder="Loan ID">
+                            </div>
+                            <div class="form-group col-2">
+                              <small for="acc_cd">Account Code</small>
+                              <input type="number" [readonly]="true" class="form-control form-control-sm readonly-field" formControlName="acc_cd" id="acc_cd" placeholder="Account Code">
+                            </div>
+                           <div class="form-group col-2">
+                              <small for="final_value">Eligibile Value</small>
+                              <input  [readonly]="true" type="number" class="form-control form-control-sm readonly-field" formControlName="final_value" id="final_value" placeholder="Final Value">
+                            </div>
+                            </div>
+                            
+                            <div class="form-group col-12">
+                              <div class="form-row" *ngIf="loan.get('sec_type').value == 'D'">
+                                
+                                 <div *ngIf="!showLien" class="form-row">
+                                <div class="form-group col-2"  >
+                                  <small for="acc_type_cd">Account Type Code</small>
+                                  <input [readonly]="true" type="number" class="form-control form-control-sm readonly-field"  [value]="loan.get('acc_type_cd').value" formControlName="acc_type_cd" id="acc_type_cd" placeholder="Account Type Code">
+                                </div>
+                                <div class="form-group col-2"  >
+                                  <small for="acc_num">Account Number</small>
+                                  <input [readonly]="true" type="text" class="form-control form-control-sm readonly-field" [value]="loan.get('acc_num').value" formControlName="acc_num" id="acc_num" placeholder="Account Number">
+                                </div>
+                                <div class="form-group col-2" >
+                                  <small for="opn_dt">Opening Date</small>
+                                  <input [readonly]="true" type="text" class="form-control form-control-sm readonly-field" [value]="loan.get('opn_dt').value" formControlName="opn_dt" id="opn_dt">
+                                </div>
+                                <div class="form-group col-2" >
+                                  <small for="mat_dt">Maturity Date</small>
+                                  <input [readonly]="true" type="text" class="form-control form-control-sm readonly-field" [value]="loan.get('mat_dt').value" formControlName="mat_dt" id="mat_dt">
+                                </div>
+                                <div class="form-group col-2" >
+                                  <small for="prn_amt">Principal Amount</small>
+                                  <input [readonly]="true" type="number" class="form-control form-control-sm readonly-field" [value]="loan.get('prn_amt').value" formControlName="prn_amt" id="prn_amt" placeholder="Principal Amount">
+                                </div>
+                                <div class="form-group col-2" >
+                                  <small for="mat_val">Maturity Value</small>
+                                  <input [readonly]="true" type="number" class="form-control form-control-sm readonly-field" [value]="loan.get('mat_val').value" formControlName="mat_val" id="mat_val" placeholder="Maturity Value">
+                                </div>
+                                <div class="form-group col-2" >
+                                  <small for="curr_bal">Current Balance</small>
+                                  <input [readonly]="true" type="number" class="form-control form-control-sm readonly-field" [value]="loan.get('curr_bal').value" formControlName="curr_bal" id="curr_bal" placeholder="Current Balance">
+                                </div>
+                                </div>
+                              </div>
+                              <div *ngIf="loan.get('sec_type').value == 'N'" class="form-row">
+                                
+                          <div class="form-group col-2" >
+                            <small for="cert_type">Certificate Type</small>
+                            <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('cert_type').value" formControlName="cert_type" id="cert_type" placeholder="Certificate Type">
+                          </div>
+                          <div class="form-group col-2" >
+                            <small for="cert_name">Certificate Name</small>
+                            <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('cert_name').value" formControlName="cert_name" id="cert_name" placeholder="Certificate Name">
+                          </div>
+                          <div class="form-group col-2" >
+                            <small for="cert_no">Certificate Number</small>
+                            <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('cert_no').value" formControlName="cert_no" id="cert_no" placeholder="Certificate Number">
+                          </div>
+                          <div class="form-group col-2" >
+                            <small for="regn_no">Registration Number</small>
+                            <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('regn_no').value" formControlName="regn_no" id="regn_no" placeholder="Registration Number">
+                          </div>
+                          <div class="form-group col-2" >
+                            <small for="post_off">Post Office</small>
+                            <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('post_off').value" formControlName="post_off" id="post_off" placeholder="Post Office">
+                          </div>
+                          <div class="form-group col-2" >
+                            <small for="cert_opn_dt">Certificate Opening Date</small>
+                            <input type="date" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('cert_opn_dt').value" formControlName="cert_opn_dt" id="cert_opn_dt">
+                          </div>
+                          <div class="form-group col-2" >
+                            <small for="cert_mat_dt">Certificate Maturity Date</small>
+                            <input type="date" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('cert_mat_dt').value" formControlName="cert_mat_dt" id="cert_mat_dt">
+                          </div>
+                          <div class="form-group col-2" >
+                            <small for="cert_pdlg_dt">Certificate Pledge Date</small>
+                            <input type="date" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('cert_pdlg_dt').value" formControlName="cert_pdlg_dt" id="cert_pdlg_dt">
+                          </div>
+                          <div class="form-group col-2" >
+                            <small for="cert_plg_no">Certificate Pledge Number</small>
+                            <input type="number" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('cert_plg_no').value" formControlName="cert_plg_no" id="cert_plg_no" >
+                          </div>
+                          <div class="form-group col-2" >
+                            <small for="purchase_value">Purchase Value</small>
+                            <input type="number" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('purchase_value').value" formControlName="purchase_value" id="purchase_value" placeholder="Purchase Value">
+                          </div>
+                          <div class="form-group col-2" >
+                            <small for="sum_assured">Sum Assured</small>
+                            <input type="number" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('sum_assured').value" formControlName="sum_assured" id="sum_assured" placeholder="Sum Assured">
+                          </div>
+                              </div>
+                              <div *ngIf="loan.get('sec_type').value == 'L'" class="form-row">
+                                <div class="form-group col-2" >
+                                  <small for="pol_type">Policy Type</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('pol_type').value" formControlName="pol_type" id="pol_type" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="pol_name">Policy Name</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('pol_name').value" formControlName="pol_name" id="pol_name" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="pol_no">Policy Number</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('pol_no').value" formControlName="pol_no" id="pol_no" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="pol_opn_dt">Opening Date</small>
+                                  <input type="date" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('pol_opn_dt').value" formControlName="pol_opn_dt" id="pol_opn_dt" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="pol_mat_dt">Maturity Date</small>
+                                  <input type="date" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('pol_mat_dt').value" formControlName="pol_mat_dt" id="pol_mat_dt" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="pol_sur_val">Sum Assured</small>
+                                  <input type="number" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('pol_sur_val').value" formControlName="pol_sur_val" id="pol_sur_val" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="pol_brn_name">Branch Name</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('pol_brn_name').value" formControlName="pol_brn_name" id="pol_brn_name" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="pol_assgn_no">Assignment Number</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('pol_assgn_no').value" formControlName="pol_assgn_no" id="pol_assgn_no" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="pol_assgn_dt">Assignment Date</small>
+                                  <input type="date" class="form-control form-control-sm readonly-field" [value]="loan.get('pol_assgn_dt').value" formControlName="pol_assgn_dt" id="pol_assgn_dt" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="pol_money_bk">Money Back Option</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('pol_money_bk').value" formControlName="pol_money_bk" id="pol_money_bk" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="pol_sum_assured">Policy Surrender Value</small>
+                                  <input type="number" class="form-control form-control-sm readonly-field" [value]="loan.get('pol_sum_assured').value" formControlName="pol_sum_assured" id="pol_sum_assured" />
+                                </div>
+                              </div>
+                              <div *ngIf="loan.get('sec_type').value == 'H'" class="form-row">
+                                <div class="form-group col-2" >
+                                  <small for="prop_type">Property Type</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('prop_type').value" formControlName="prop_type" id="prop_type" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="prop_addr">Property Address</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('prop_addr').value" formControlName="prop_addr" id="prop_addr" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="total_land_area">Total Land Area</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('total_land_area').value" formControlName="total_land_area" id="total_land_area" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="tot_cv_area">Total Covered Area</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('tot_cv_area').value" formControlName="tot_cv_area" id="tot_cv_area" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="deed_no">Deed Number</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('deed_no').value" formControlName="deed_no" id="deed_no" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="distct">District</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('distct').value" formControlName="distct" id="distct" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="ps">Police Station</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('ps').value" formControlName="ps" id="ps" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="mouza">Mouza</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('mouza').value" formControlName="mouza" id="mouza" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="jl_no">JL Number</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('jl_no').value" formControlName="jl_no" id="jl_no" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="rs_kha">RS Kha</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('rs_kha').value" formControlName="rs_kha" id="rs_kha" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="lr_kha">LR Kha</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('lr_kha').value" formControlName="lr_kha" id="lr_kha" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="rs_dag">RS Dag</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('rs_dag').value" formControlName="rs_dag" id="rs_dag" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="lr_dag">LR Dag</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('lr_dag').value" formControlName="lr_dag" id="lr_dag" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="deed_muni">Deed Municipality</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('deed_muni').value" formControlName="deed_muni" id="deed_muni" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="ward_no">Ward Number</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('ward_no').value" formControlName="ward_no" id="ward_no" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="holding_no">Holding Number</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('holding_no').value" formControlName="holding_no" id="holding_no" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="boundry">Boundary</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('boundry').value" formControlName="boundry" id="boundry" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="cnst_yr">Construction Year</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('cnst_yr').value" formControlName="cnst_yr" id="cnst_yr" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="floor_area">Floor Area</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('floor_area').value" formControlName="floor_area" id="floor_area" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="mkt_val">Market Value</small>
+                                  <input type="number" class="form-control form-control-sm readonly-field" [value]="loan.get('mkt_val').value" formControlName="mkt_val" id="mkt_val" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="tax_upto">Tax Upto</small>
+                                  <input type="date" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('tax_upto').value" formControlName="tax_upto" id="tax_upto" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="bl_ro_tax">Tax Paid</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('bl_ro_tax').value" formControlName="bl_ro_tax" id="bl_ro_tax" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="mort_deed_reg_no">Mortgage Deed Reg. No.</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('mort_deed_reg_no').value" formControlName="mort_deed_reg_no" id="mort_deed_reg_no" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="mort_deed_dt">Mortgage Deed Date</small>
+                                  <input type="date" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('mort_deed_dt').value" formControlName="mort_deed_dt" id="mort_deed_dt" />
+                                </div>
+                              </div>
+                              <div *ngIf="loan.get('sec_type').value == 'S'" class="form-row">
+                                <div class="form-group col-2" >
+                                  <small for="stock_type">Stock Type</small>
+                                  <input type="text" [readonly]="true" class="form-control form-control-sm readonly-field" [value]="loan.get('stock_type').value" formControlName="stock_type" id="stock_type" />
+                                </div>
+                              
+                                <div class="form-group col-2" >
+                                  <small for="stock_value">Stock Value</small>
+                                  <input [readonly]="true" type="number" class="form-control form-control-sm readonly-field" [value]="loan.get('stock_value').value" formControlName="stock_value" id="stock_value" step="0.01" />
+                                </div>
+                              </div>
+              
+                              <div *ngIf="loan.get('sec_type').value == 'G'" class="form-row">
+                                <div class="form-group col-2" *ngIf="isRetrive">
+                                  <small for="slab_range">Sanction Range(%)</small> <br>
+                                  <input   style="height:25px" [readOnly]="true" type="text" class="form-control form-control-sm readonly-field"
+                                  [(ngModel)]="sanc_perc" [ngModelOptions]="{standalone: true}" id="slab_range" placeholder="Sanction perc" >
+                                 
+                          
+                                </div>
+                                <div class="form-group col-2" *ngIf="!isRetrive">
+                                  <small for="slab_range">Sanction Range</small> <br>
+                                  <select  #nextField (change)="getInttSlabMain($event.target.value)"
+                                    style="height:25px; text-align-last: left; font-size: small; padding-top: 0px; background-color: whitesmoke;"
+                                    id="slab_range"  formControlName="karat"
+                                     class="form-control form-control-sm readonly-field">
+                                    <option  selected>Select a Sanction Range</option>
+                                    <option *ngFor="let lk of allSlabList" [value]="lk.sanc_perc" >{{lk.sanc_perc}}%</option>
+                                  </select>
+                          
+                                </div>
+                                <div class="form-group col-2">
+                                  <small for="act_rate">Today Gold Value</small>
+                                  <input   style="height:25px" [readOnly]="true" type="Number" class="form-control form-control-sm readonly-field"
+                                    [ngModelOptions]="{standalone: true}" [(ngModel)]="sanc_per_grm" (change)="slabRangeValidationMain($event.target.value)" formControlName="mkt_val"  id="act_rate" placeholder="Rate with in slab range" >
+                                    <!-- <div *ngIf="amountError" style="color: red;">{{ amountError }}</div> -->
+                                </div>
+                                <div class="form-group col-2">
+                                  <small for="intt_on_slab">Slab Intt.</small>
+                                  <input [readOnly]="true" style="height:25px" type="Number"  class="form-control form-control-sm " 
+                                  id="intt_on_slab" placeholder="intt_on_slab" [(ngModel)]="intt_on_slab" [ngModelOptions]="{standalone: true}" formControlName="intt_on_slab">
+                                </div>
+                                
+                                <div class="form-group col-2" *ngIf="isRetrive">
+                                  <small for="safe_id">Godsafe Id</small>
+                                  <input   style="height:25px" [readOnly]="true" type="text" class="form-control form-control-sm text-capitalize readonly-field"
+                                  [(ngModel)]="safe_id" [ngModelOptions]="{standalone: true}" id="safe_id" placeholder="safe id" >
+                                 
+                                </div>
+                                <div class="form-group col-2" *ngIf="!isRetrive">
+                                  <small for="safe_id">Godsafe Id</small>
+                                  
+                                  <select
+                                  style="height:25px; font-size: small; align-content:center; padding-top: 0px; background-color: whitesmoke;"
+                                   formControlName="jl_no"
+                                   id="safe_id" class="form-control form-control-sm readonly-field">
+                                  <option >Select Godsafe</option>
+                                  <option *ngFor="let t of goldSafeData" [value]="t.goldSafeId">
+                                    {{t.goldSafeName}}</option>
+                                </select>
+                                </div>
+                                <div class="form-group col-2" *ngIf="false">
+                                  <small for="gold_gross_wt">Gold Gross Weight</small>
+                                  <input type="number" class="form-control form-control-sm readonly-field" formControlName="gold_gross_wt" id="gold_gross_wt" step="0.01" />
+                                </div>
+                              
+                                <div class="form-group col-2" *ngIf="false">
+                                  <small for="gold_net_wt">Gold Net Weight</small>
+                                  <input type="number" class="form-control form-control-sm readonly-field" formControlName="gold_net_wt" id="gold_net_wt" step="0.01" />
+                                </div>
+                              
+                                <div class="form-group col-2" *ngIf="false">
+                                  <small for="karat">Karat</small>
+                                  <input type="number" class="form-control form-control-sm readonly-field" formControlName="karat" id="karat" />
+                                </div>
+                              
+                                <div class="form-group col-2" *ngIf="false">
+                                  <small for="gold_desc">Gold Description</small>
+                                  <input type="text" class="form-control form-control-sm readonly-field" formControlName="gold_desc" id="gold_desc" />
+                                </div>
+                              
+                              <div class="form-group col-2" *ngIf="false">
+                                <small for="gold_qty">Gold Quantity</small>
+                                <input type="number" class="form-control form-control-sm readonly-field" formControlName="gold_qty" id="gold_qty" />
+                              </div>
+                            
+                              <div class="form-group col-2" *ngIf="false">
+                                <small for="gold_val">Gold Value</small>
+                                <input type="number" class="form-control form-control-sm readonly-field" formControlName="gold_val" id="gold_val" step="0.01" />
+                              </div>
+                            </div>
+                            </div>
+                            
+                        </div>
+                        <div *ngIf="loan.get('sec_type').value == 'G'" class="form-row">
+                          <div class="col-12">
+                            <h4 class="customHeader">Jewelry Details</h4>
+                            <section *ngFor="let t1 of tdJewelry; let i = index">
+                              <div class="form-row ">
+                                <div class="form-group col-md-1">
+                                  <small for="sl_no">Serial No</small>
+                                  <input style="height:25px" [readonly]="true" type="text" class="form-control form-control-sm text-capitalize"
+                                    [ngModelOptions]="{standalone: true}" [(ngModel)]="t1.sl_no" placeholder="Serial No" id="sl_no" placeholder="Serial No">
+                                </div>
+                                <div class="form-group col-md-1" >
+                                  <small for="loan_id">Loan Id</small>
+                                  <input style="height:25px" type="text"  class="form-control form-control-sm " 
+                                  id="Loan No" placeholder="Loan No" [ngModelOptions]="{standalone: true}" [(ngModel)]="t1.loan_id">
+                                </div>
+                              
+                                <div class="form-group col-md-2">
+                                  <small for="relation">Item Desc.</small> <br>
+                                  <select
+                                    style="height:25px; text-align-last: left; font-size: small; padding-top: 0px; background-color: whitesmoke;"
+                                    id="relation" [ngModelOptions]="{standalone: true}" [(ngModel)]="t1.desc_val"
+                                     class="form-control form-control-sm readonly-field">
+                                    <option [value]="t1.desc_val" selected>{{t1.desc_val}}</option>
+                                    <option *ngFor="let l of allJewelryType" [value]="l.goldItemDes">{{l.goldItemDes}}</option>
+                                  </select>
+                    
+                                </div>
+                                
+                                <div class="form-group col-md-1">
+                                  <small for="desc_no">Item No</small>
+                                  <input style="height:25px"  type="Number" class="form-control form-control-sm text-capitalize readonly-field "
+                                    [ngModelOptions]="{standalone: true}" [(ngModel)]="t1.desc_no"  id="desc_no" placeholder="Item No" (change)="setAllTotal(t1,1,i)">
+                                </div>
+                                <div class="form-group col-md-1">
+                                  <small for="net_we">Net Wt.(gm)</small>
+                                  <input style="height:25px" type="Number" class="form-control form-control-sm text-capitalize readonly-field"
+                                    [ngModelOptions]="{standalone: true}" [(ngModel)]="t1.net_we"  id="net_we" placeholder="Net Weight" (change)="setAllTotal(t1,2,i)">
+                                </div>
+                                <div class="form-group col-md-1">
+                                  <small for="purity_we">Purity(%)</small>
+                                  <input style="height:25px"  type="Number" class="form-control form-control-sm text-capitalize readonly-field"
+                                    [ngModelOptions]="{standalone: true}" [(ngModel)]="t1.purity_we"  id="purity_we" placeholder="Purity %" (change)="setAllTotal(t1,3,i)">
+                                </div>
+                                <div class="form-group col-md-2">
+                                  <small for="act_we">24 krt gold in (Gm)</small>
+                                  <input style="height:25px" [readonly]="true" type="Number" class="form-control form-control-sm text-capitalize readonly-field"
+                                    [ngModelOptions]="{standalone: true}" [(ngModel)]="t1.act_we"  id="act_we" placeholder="24 krt gold" (change)="setAllTotal(t1,4,i)">
+                                </div>
+                                <div class="form-group col-md-2">
+                                  <small for="net_value">Value of gold</small>
+                                  <input [readonly]="true" style="height:25px"type="Number" class="form-control form-control-sm text-capitalize readonly-field"
+                                    [ngModelOptions]="{standalone: true}" [(ngModel)]="t1.net_value"  id="net_value" placeholder="Value of gold Ornaments" (change)="setAllTotal(t1,5,i)">
+                                </div>
+                                
+                
+                               
+                                
+                              </div>
+                              
+                            </section>
+                            <hr><br>
+                              <div class="form-row " *ngIf="!isRetrive">
+                                <div class="form-group col-3">
+                                  &nbsp;
+                                </div>
+                                <div class="form-group col-1">
+                                  <input style="height:25px" [readonly]="true" type="text" class="form-control form-control-sm text-capitalize readonly-field"
+                                   value="Total">
+                                </div>
+                                <div class="form-group col-1">
+                                  <input style="height:25px" [readonly]="true" type="Number" class="form-control form-control-sm text-capitalize readonly-field"
+                                    [ngModelOptions]="{standalone: true}" [(ngModel)]="tot_desc_no "  placeholder="Total Item">
+                                </div>
+                                
+                                <div class="form-group col-1">
+                                  <input style="height:25px" [readonly]="true" type="Number" class="form-control form-control-sm text-capitalize readonly-field"
+                                    [ngModelOptions]="{standalone: true}" [(ngModel)]="tot_net_we"  id="net_we" placeholder="Total Net Weight">
+                                </div>
+                                <div class="form-group col-1">&nbsp;</div>
+                                <div class="form-group col-2">
+                                  <input style="height:25px" [readonly]="true" type="text" class="form-control form-control-sm text-capitalize readonly-field"
+                                    [ngModelOptions]="{standalone: true}" [(ngModel)]="tot_act_we"  id="act_we" placeholder="Total Equivalent Weight of 22 krt">
+                                </div>
+                                
+                                <div class="form-group col-2">
+                                  <input style="height:25px" [readonly]="true" type="text" class="form-control form-control-sm text-capitalize readonly-field"
+                                    [ngModelOptions]="{standalone: true}" [(ngModel)]="tot_net_value"  id="net_value" placeholder="Total Value of gold Ornaments">
+                                </div>
+                                
+                              </div>
+                            <!-- <div class="text-right mb-3">
+                              <button type="button" style=" max-height: 27px;" class="btn btn-primary btn-sm mr-2"
+                                (click)="addJewelry()">
+                                <i class="fa fa-plus-circle" aria-hidden="true"></i>
+                              </button>
+                    
+                              <button  type="button" style="max-height: 27px;" class="btn btn-primary btn-sm"
+                                (click)="removeJewelry()">
+                                <i class="fa fa-minus-circle" aria-hidden="true"></i>
+                              </button>
+                            </div> -->
+                           
+                            
+                    
+                          </div>
+                        </div>
+                      <hr />
+                      <!-- <button type="button" (click)="removeLoanDetail(i)">Remove</button> -->
+                    </div>
+                    </div>
+                    
+                    <!-- <button type="button" (click)="addLoanDetail()">Add New Loan Detail</button> -->
+                    
+                  </form>
+                </div>
+                <div class="box" >
+                <h4 class="customHeader">Sanction Information</h4>
+                <form [formGroup]="thirdFormGroup">
+                  <div class="form-group col-12">
+                   <div class="form-row">
+                      <div class="form-group col-2">
+                        <small for=due_date>First Due Date </small><span class="text-danger">*</span>
+                        <div class="input-group">
+                          <input class="form-control form-control-sm readonly-field text-capitalize" id="due_date"  [readonly]="true"
+                            style="height:25px; text-align: right;" bsDatepicker  [ngModelOptions]="{standalone: true}"
+                            [bsConfig]="{ dateInputFormat: 'DD/MM/YYYY', containerClass:'theme-dark-blue' }"
+                            [(ngModel)]="tm_loan_all.instl_start_dt" type="text" placeholder="DD/MM/YYYY" (ngModelChange)="rep_stDT()">
+                        </div>
+                      </div>
+                      <div class="form-group col-2">
+                        <small for=curr_int_rate>Current Interest Rate</small><span class="text-danger">*</span>
+                        <input class="form-control form-control-sm text-capitalize" *ngIf="!isRetrive"
+                        id="curr_int_rate" [ngModelOptions]="{standalone: true}" [disabled]="isRetrive"
+                        style="height:25px; text-align: right; float: none;" type="number" min="0" step='any'
+                        [(ngModel)]="tm_loan_all.curr_intt_rate"  placeholder="Curr Int Rate">
+                        <input class="form-control form-control-sm text-capitalize" *ngIf="isRetrive"
+                        id="curr_int_rate" [ngModelOptions]="{standalone: true}" [disabled]="isRetrive"
+                        style="height:25px; text-align: right; float: none;" type="number" min="0" step='any'
+                        [(ngModel)]="intt_on_slab"  placeholder="Curr Int Rate">
+                      </div>
+                
+                
+                      <div class="form-group col-2">
+                        <small>Instalment No</small><span class="text-danger">*</span>
+                        <input class="form-control form-control-sm readonly-field text-capitalize"
+                           id="instl_no" [ngModelOptions]="{standalone: true}"  [readonly]="true"
+                          style="height:25px; text-align: right;" type="number" min="0" step='any' [(ngModel)]="tm_loan_all.instl_no"
+                          placeholder="Instalment No">
+                      </div>
+                
+                      <div class="form-group col-2">
+                        <small>Installment Type</small><span class="text-danger">*</span>
+                        <select [ngModelOptions]="{standalone: true}"
+                          style="height:25px; font-size: small; align-content:center; padding-top: 0px; background-color: whitesmoke;"
+                          [readonly]="true"
+                          (change)="setInstalPeriod($event.target.value)" [(ngModel)]="tm_loan_all.piriodicity" id="loan_type"
+                          class="form-control form-control-sm readonly-field">
+                          <option [value]="tm_loan_all.piriodicity" [readonly]="true" selected>
+                            {{tm_loan_all.piriodicity}}-{{tm_loan_all.instalmentTypeDesc}}</option>
+                          <option *ngFor="let l of instalmentTypeList" [value]="l.desc_type">{{l.desc_type}}-{{l.ins_desc}}</option>
+                        </select>
+                      </div>
+                
+                      <div class="form-group col-2">
+                        <small>Repayment Formula</small><span class="text-danger">*</span>
+                        <select [ngModelOptions]="{standalone: true}"
+                          style="height:25px; font-size: small; align-content:center; padding-top: 0px; background-color: whitesmoke;"
+                          [readonly]="true"
+                          (change)="setRepaymentFormula($event.target.value)" [(ngModel)]="tm_loan_all.emi_formula_no" id="loan_type"
+                          class="form-control form-control-sm readonly-field">
+                          <option  selected>Select</option>
+                          <option *ngFor="let l of repaymentFormulaList" [value]="l.formula_no">{{l.formula_desc}}</option>
+                        </select>
+                      </div>
+                
+                      <!-- <div class="form-group col-1 "></div> -->
+                      <div class="form-group col-2 " >
+                      
+                          <small>Ledger Folio No.</small>
+                          <input class="form-control form-control-sm readonly-field text-capitalize"  [readonly]="true"
+                             id="bond_no" [ngModelOptions]="{standalone: true}"
+                            style="height:25px; text-align: right;" [(ngModel)]="tm_loan_all.loan_acc_no" type="text" placeholder="Ledger Folio No">
+                       
+                     
+                      </div>
+                      
+                      </div>
+          
+                  </div>
+                  <div class="form-group col-12">
+                    <div class="form-row">
+                      
+                      <div class="form-group col-2">
+                        <small>Sector</small><span class="text-danger">*</span>
+                        <select  [readonly]="true"
+                          style="height:25px; font-size: small; align-content:center; padding-top: 0px; background-color: whitesmoke;"
+                           formControlName="sector_cd"
+                          (change)="setSectorType($event.target.value )" id="sec_type" 
+                          class="form-control form-control-sm readonly-field">
+                          <option >Select Sector</option>
+                          <option *ngFor="let t of sectorList" [value]="t.sector_cd">{{t.sector_desc}}</option>
+                        </select>
+                      </div>
+              
+                      <div class="form-group col-2">
+                        <small>Activity</small><span class="text-danger">*</span>
+                        <select  [readonly]="true"
+                          style="height:25px; font-size: small; align-content:center; padding-top: 0px; background-color: whitesmoke;"
+                           formControlName="activity_cd"
+                          (change)="setActivityType($event.target.value )" id="act_type" class="form-control form-control-sm readonly-field">
+                          <option >Select Activity</option>
+                          <option *ngFor="let t of activityList" [value]="t.activity_cd">
+                            {{t.activity_desc}}</option>
+                        </select>
+                      </div>
+                      <div class="form-group col-2">
+                        <small>Sanction Amount</small><span class="text-danger">*</span>
+                        <input class="form-control form-control-sm readonly-field text-capitalize"
+                         [readonly]="true"
+                         [(ngModel)]="tot_eligibility" [ngModelOptions]="{standalone: true}"  style="height:25px; text-align: right;"
+                          id="sanc_amount" type="number" min="0" step='any' placeholder="Sanction Amount">
+                      </div>
+                      <div class="form-group col-2">
+                        <small>Sanc No</small>
+                        <input class="form-control form-control-sm readonly-field text-capitalize" id="l.sanc_no"
+                          style="height:25px; text-align: right;" [readonly]="true"
+                          formControlName="sanc_no" type="number" min="0" step='any' placeholder="Sanction No">
+                      </div>
+                      
+                      <div class="form-group col-2">
+                        <small for=sanc_date>Sanction Date<span class="text-danger">*</span></small>
+                        <div class="input-group">
+                          <input  [readonly]="true" class="form-control form-control-sm readonly-field text-capitalize" id="sanc_date"
+                            style="height:25px; text-align: right;" bsDatepicker
+                            [bsConfig]="{ dateInputFormat: 'DD/MM/YYYY', containerClass:'theme-dark-blue' }"
+                            
+                            formControlName="sanc_date" type="text" placeholder="DD/MM/YYYY">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+          
+                </form>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+      <div *ngIf="!isRetrive">
+        <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button matStepperPrevious>Back</button>
+        <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button  (click)="backScreen()">Close</button>
+        <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button [disabled]="!jewlSecuritySave" (click)="FinalSaveLoan()">Save & Approve</button>
+
+      </div>
+      <div *ngIf="isRetrive && userType === 'A'">
+        <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button (click)="FinalSaveLoan()">Update Loan Data</button>
+
+        <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button  (click)="backScreen()">Close</button>
+        <!-- <button style="float: right;" class="btn btn-primary btn-sm ml-1 mr-1" mat-button (click)="updateLoanData()">Update</button> -->
+      </div>
+    </mat-step>
+  </mat-stepper>
+  <div *ngIf="showMsg && showMsg.Show" class="col-12 mt-1">
+    <div class="alert alert-dismissible fade show" role="alert" [ngClass]="{'alert-success': showMsg.Type == 0,
+     'alert-warning':showMsg.Type == 1, 'alert-info':showMsg.Type == 2, 'alert-danger':showMsg.Type == 3 }">
+      <strong>{{showMsg.Message}}</strong>
+      <button type="button" class="close" data-dismiss="alert" (click)="closeAlertMsg()" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+  </div><loading *ngIf="isLoading"></loading>
+
+<!-- modal -->
+
+  <ng-template #content2 let-modal data-keyboard="false" data-backdrop="false">
+    <div class="modal-header">
+      <h4 class="modal-title" id="modal-basic-title">Open Loan Operation</h4>
+      <button type="button" class="close text-danger" aria-label="Close" data-dismiss="modal" (click)="modalRef.hide()">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+     <div  *ngIf="!isRetrive" style="text-align: center;">
+      <button mat-raised-button class="btn btn-primary" (click)="modalRef.hide()">New Entry</button> &nbsp;
+      <button mat-raised-button class="btn btn-primary" (click)="retriveClick()">Retrive</button>
+     </div>
+      <form *ngIf="isRetrive">
+        <div class="col-12">
+          <div class="form-row">
+            <div class="form-group col-12">
+              <small for="acc_type">Loan ID<span class="text-danger">*</span></small>
+                <input type="text"  class="form-control form-control-sm custom-scrollbar"  [(ngModel)]="loan_id" [ngModelOptions]="{standalone: true}" />
+                    
+              </div>
+              
+            </div>
+        </div>
+      </form>
+      
+    </div>
+    <div class="modal-footer" *ngIf="isRetrive">
+      <button mat-raised-button class="btn btn-primary" (click)="getLoanData()">Get Loan Details</button> &nbsp;
+      <button mat-raised-button class="btn btn-light" (click)="closeModal()">Close</button>
+    </div>
+  </ng-template>
+
+
+  <ng-template #kycContent>
+    <div class="modal-header">
+      <h4 class="modal-title pull-left">KYC details
+      </h4>
+      <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <app-kyc></app-kyc>
+    </div>
+  </ng-template>
+
+  <ng-template #netWorth>
+    <div class="modal-header">
+      <h4 class="modal-title pull-left customHeader">NetWorth Statement details #UCIC: {{this.f.cust_cd.value}}
+      </h4>
+      <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="col-xs-12 col-sm-12 shadow-lg mb-4 bg-white p-3 mkScroll">
+  
+      <div class="row" >
+        <div class="col-12">
+          <table id="trialbalance">
+              <tr>
+                <th>Acc Type</th>
+                <th>Acc Num</th>
+                <th style="text-align:right">Balance</th>
+                <th style="text-align:right">Mat Amt</th>
+                <th>Mat DT</th>
+                <th>Status</th>
+              </tr>
+                <tbody *ngFor="let i of reportData2; let itr=index;" >
+              <tr>
+                <td> {{i.acc_type_cd}}</td>
+                <!-- <td *ngIf="i.acc_type_cd==1">Savings Deposit</td>
+                <td *ngIf="i.acc_type_cd==2">Fixed Deposit</td>
+                <td *ngIf="i.acc_type_cd==3">DBS</td>
+                <td *ngIf="i.acc_type_cd==4">Cash Certificate</td>
+                <td *ngIf="i.acc_type_cd==5">Monthly Income Scheme</td>
+                <td *ngIf="i.acc_type_cd==6">Recurring Deposit</td>
+                <td *ngIf="i.acc_type_cd==7">Share Account</td>
+                <td *ngIf="i.acc_type_cd==8">Flexi Deposit</td>
+                <td *ngIf="i.acc_type_cd==9">Loan Suspense</td>
+                <td *ngIf="i.acc_type_cd==11">DSP</td> -->
+                <td>{{i.acc_num}}</td>
+                <td style="text-align:right">{{i.clr_bal | INRCurrency }}</td>
+                <td style="text-align:right">{{i.mat_amt || 0 | INRCurrency }}</td>
+                <td>{{i.mat_dt.substr(0,10)=='01/01/0001'?'NA':i.mat_dt.substr(0,10) }}</td>
+                <td style="color: rgb(1, 94, 1);" *ngIf="i.acc_status=='O'">Open</td>
+                <td style="color: rgb(156, 4, 4);" *ngIf="i.acc_status=='C'">Closed</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div><br><br>
+        <div class="row" >
+        <div class="col-12">
+          <table id="trialbalance">
+            <tr>
+              <th>Loan Type</th>
+              <th>Loan ID</th>
+              <th  style="text-align:right">Curr Prn</th>
+              <th  style="text-align:right">Ovd Prn</th>
+              <th style="text-align:right">Curr Intt</th>
+              <th style="text-align:right">Ovd Intt</th>
+              <th style="text-align:right">Penal Intt</th>
+              <th style="text-align:right">Total Outstanding</th>
+              <th >Status</th>
+            </tr>
+              <tbody *ngFor="let i of reportData; let itr=index;">
+            <tr>
+              <td>{{i.acc_desc}}</td>
+              <td>{{i.loan_id}}</td>
+              <td style="text-align:right">{{i.curr_prn | INRCurrency}}</td>
+              <td style="text-align:right">{{i.ovd_prn  | INRCurrency}}</td>
+              <td style="text-align:right">{{i.curr_intt  | INRCurrency}}</td>
+              <td style="text-align:right">{{i.ovd_intt  | INRCurrency}}</td>
+              <td style="text-align:right">{{i.penal_intt  | INRCurrency}}</td>
+              <td style="text-align:right">{{i.penal_intt+i.ovd_intt+i.curr_intt+i.ovd_prn+i.curr_prn  | INRCurrency}}</td>
+              <td *ngIf="i.loan_status=='O'" style="color: rgb(4, 104, 4);">Open</td>
+              <td *ngIf="i.loan_status=='C'" style="color: rgb(187, 6, 6);">Closed</td>
+            </tr>
+          </tbody>
+          </table>
+        </div>
+      </div>
+  
+      </div>
+    </div>
+  </ng-template>

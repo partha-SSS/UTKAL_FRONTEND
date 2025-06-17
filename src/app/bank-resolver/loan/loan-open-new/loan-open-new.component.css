@@ -1,0 +1,135 @@
+.example-stepper {
+    margin-top: 8px;
+  }
+  
+  .mat-mdc-form-field {
+    margin-top: 16px;
+  }
+  .suggestions{
+    font-family: Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    /*  */
+    position: relative;
+    background-color: rgb(255, 255, 255);
+    z-index: 99;
+    /* width: 200px; */
+    height: auto;
+    max-height: 300px;
+    overflow: auto;
+    /*  */
+    border: 1px solid #ddd;
+    padding: 8px;
+  }
+  .hidden {display:none;}
+  #customers1 {
+    font-family: Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    font-size: small;
+  }
+  
+  #customers1 td, #customers1 th {
+    border: 1px solid #ddd;
+    padding: 8px;
+    
+  }
+  
+  #customers1 tr:nth-child(even){background-color: #f2f2f2;}
+  
+  #customers1 tr:hover {background-color: #aeeea6; cursor: pointer;}
+  
+  #customers1 th {
+    padding-top: 2px;
+    padding-bottom: 2px;
+    text-align: left;
+    background-color: #234e3c;
+    color: white;
+    font-size:small;
+  }
+  #tbl.table, th, td {
+    border: 2px solid #234e3c;
+    padding: 8px;
+    /* border-collapse: collapse; */
+    /* border: 1px solid black; */
+  }
+
+
+
+
+
+  .team-boxed {
+    color:#313437;
+    background-color:#eef4f7;
+  }
+  
+  .team-boxed p {
+    color:#7d8285;
+  }
+  
+  .team-boxed h2 {
+    font-weight:bold;
+    margin-bottom:40px;
+    padding-top:40px;
+    color:inherit;
+  }
+  
+  @media (max-width:767px) {
+    .team-boxed h2 {
+      margin-bottom:25px;
+      padding-top:25px;
+      font-size:24px;
+    }
+  }
+  .readonly-field {
+    background-color: #f9f9f9;
+    cursor: not-allowed;
+  }
+  .team-boxed .intro {
+    font-size:16px;
+    max-width:500px;
+    margin:0 auto;
+  }
+  
+  .team-boxed .intro p {
+    margin-bottom:0;
+  }
+  
+  .team-boxed .people {
+    padding:50px 0;
+  }
+  
+  .team-boxed .item {
+    text-align:left;
+  }
+  
+  .team-boxed .item .box {
+    text-align:left;
+    padding:30px;
+    background-color:#fff;
+    margin-bottom:30px;
+  }
+  
+  .team-boxed .item .name {
+    font-weight:bold;
+    margin-top:28px;
+    margin-bottom:8px;
+    color:inherit;
+  }
+  
+  .team-boxed .item .title {
+    text-transform:uppercase;
+    font-weight:bold;
+    color:#d0d0d0;
+    letter-spacing:2px;
+    font-size:13px;
+  }
+  
+  .team-boxed .item .description {
+    font-size:15px;
+    margin-top:15px;
+    margin-bottom:20px;
+  }
+  
+  .team-boxed .item img {
+    max-width:160px;
+  }

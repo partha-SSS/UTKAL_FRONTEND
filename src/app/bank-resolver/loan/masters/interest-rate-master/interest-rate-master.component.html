@@ -1,0 +1,220 @@
+
+<loading *ngIf="isLoading"></loading>
+<ng-template #content2 let-modal data-keyboard="false" data-backdrop="false">
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">Add New Interest Rate</h4>
+    <button type="button" class="close text-danger" aria-label="Close" data-dismiss="modal" (click)="modalRef.hide()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+   
+    <form >
+      <div class="col-12">
+        <div class="form-row">
+          <div class="form-group col-12">
+            <small for="acc_type">Account Type<span class="text-danger">*</span></small>
+              <select  style="border-radius: 1.25rem!important;"  class="form-control form-control-sm custom-scrollbar"  [(ngModel)]="selectedAccCd" [ngModelOptions]="{standalone: true}" >
+                  <option *ngFor="let l_type of accountTypeList" [value]="l_type.acc_type_cd">{{ l_type.acc_type_desc }}</option>
+                  </select>
+            </div>
+            
+          </div>
+      </div>
+    </form>
+    
+  </div>
+  <div class="modal-footer">
+    <button mat-raised-button class="btn btn-primary" (click)="getIntRate()">Get All Interest</button> &nbsp;
+    <button mat-raised-button class="btn btn-light" (click)="modalRef.hide()">Close</button>
+  </div>
+</ng-template>
+<ng-template #content let-modal data-keyboard="false" data-backdrop="false">
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">Add New Interest Rate</h4>
+    <button type="button" class="close text-danger" aria-label="Close" data-dismiss="modal" (click)="modalRef.hide()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div *ngIf="showAlert" class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>Error! </strong> {{alertMsg}}
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="closeAlert()">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+   
+    <form [formGroup]="locker">
+      <div class="col-12">
+        <div class="form-row">
+          <div class="form-group col-6">
+            <small for="acc_type">Account Type<span class="text-danger">*</span></small>
+              <select  style="border-radius: 1.25rem!important;"  class="form-control form-control-sm custom-scrollbar"  formControlName="acc_cd" >
+                  <option *ngFor="let l_type of accountTypeList" [value]="l_type.acc_type_cd">{{ l_type.acc_type_desc }}</option>
+                  </select>
+            </div>
+            <!-- <div class="form-group col-4">
+              <small for="acc_type">Scheme Id<span class="text-danger">*</span></small>
+              <input type="number" [readOnly]="true" style="border-radius: 1.25rem!important;" class="form-control form-control-sm custom-scrollbar" tabindex="1" formControlName="scheme_id">
+            </div> -->
+            <div class="form-group col-6">
+              <small for="acc_type">Scheme Name<span class="text-danger">*</span></small>
+              <input type="text" style="border-radius: 1.25rem!important;" class="form-control form-control-sm custom-scrollbar" tabindex="1" formControlName="scheme_name">
+
+            </div>
+            <div class="form-group col-4">
+                <small for="acc_type">Intt Calc Type<span class="text-danger">*</span></small>
+
+                <select 
+                style="border-radius: 1.25rem!important;" 
+                formControlName="intt_calc_type" 
+                class="form-control form-control-sm custom-scrollbar" 
+                >
+                <option 
+                  *ngFor="let l_cat of instalmentTypeList" 
+                  [value]="l_cat.desc_type">
+                  {{l_cat.desc_type}}-{{l_cat.ins_desc}}
+                </option>
+              </select>
+
+                </div>
+            <div class="form-group col-4">
+            <small for="acc_type">Effective From<span class="text-danger">*</span></small>
+              <input type="date" style="border-radius: 1.25rem!important;" class="form-control form-control-sm custom-scrollbar" tabindex="1" formControlName="eff_date">
+            </div>
+            
+            <div class="form-group col-4">
+                <small for="acc_type">Interest Rate<span class="text-danger">*</span></small>
+                <input type="number" style="border-radius: 1.25rem!important;" class="form-control form-control-sm custom-scrollbar" tabindex="1" formControlName="intt_rt">
+  
+              </div>
+          </div>
+      </div>
+    </form>
+    
+  </div>
+  <div class="modal-footer">
+    <button mat-raised-button class="btn btn-primary" (click)="SaveInterest()">Save</button> &nbsp;
+    <button mat-raised-button class="btn btn-light" (click)="modalRef.hide()">Close</button>
+  </div>
+</ng-template>
+
+<div class="row d-flex justify-content-center align-items-center"
+  style="background-color: #78c2ad21; text-align: center;">
+  <div class="col-xs-12 col-sm-12 col-md-11 col-lg-11 mb-2 bg-white p-1">
+    <button mat-raised-button type="button" class="btn btn-primary btn-sm ml-1 mr-1" (click)="getIntRate()">Retrive</button>
+    <button mat-raised-button type="button" class="btn btn-primary btn-sm ml-1 mr-1" (click)="AddLocker()">Add New Interest</button>
+
+    <!-- <button mat-raised-button type="button" class="btn btn-primary btn-sm ml-1 mr-1" (click)="onUpdateClick()">Update</button> -->
+    <button mat-raised-button type="button" class="btn btn-primary btn-sm ml-1 mr-1" (click)="onBackClick()">Back</button>
+  </div>
+</div>
+
+<div class="row d-flex justify-content-center align-items-center"
+  style="background-color: #78c2ad21; min-height: 90vh;">
+  <div *ngIf="showMsg && showMsg.Show" class="col-xs-12 col-sm-12 col-md-11 col-lg-11 shadow mb-2 bg-white p-3">
+    <div class="alert alert-dismissible fade show" role="alert" [ngClass]="{'alert-success': showMsg.Type === 0,
+     'alert-warning':showMsg.Type === 1, 'alert-info':showMsg.Type === 2, 'alert-danger':showMsg.Type === 3 }">
+      <strong>{{showMsg.Message}}</strong>
+      <button type="button" class="close" data-dismiss="alert" (click)="showMsg = null" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+  </div>
+  <div class="col-xs-12 col-sm-12 col-md-11 col-lg-8 shadow mb-2 bg-white p-3">
+    <div class="row">
+      <div class="col-12">
+        <div class="row">
+          <div class="col-12 ">
+            <h4 class="customHeader">Interest Details</h4>
+            
+            <div class="table-responsive" class="scroll-when-long">
+              
+                  <div class="form-row">
+                    <div class="form-group col-2">
+                      Effective From
+                     </div>
+                     <div class="form-group col-3">
+                      Account Type
+                     </div>
+                     
+                     <div class="form-group col-1">
+                      Scheme Id
+                     </div>
+                     <div class="form-group col-2">
+                      Scheme Name
+                     </div>
+                     <div class="form-group col-2">
+                      Intt Calc Type
+                    </div>
+                     <div class="form-group col-2">
+                       Interest Rate
+                    </div>
+                  </div>
+                    <div class="form-row" *ngFor="let int_data of reportData;let i = index">
+                      <div class="form-group col-2">
+                        <input type="text" style="border-radius: 1.25rem!important;" disabled [value]="int_data.effective_dt | slice:0:10" class="form-control form-control-sm custom-scrollbar" tabindex="1"  >
+                      </div>
+                    <div class="form-group col-3">
+                      <select 
+                      style="border-radius: 1.25rem!important;" 
+                      [(ngModel)]="int_data.acc_cd" 
+                      class="form-control form-control-sm custom-scrollbar" 
+                      disabled>
+                      <option 
+                        *ngFor="let l_type of accountTypeList" 
+                        [value]="l_type.acc_type_cd">
+                        {{ l_type.acc_type_cd }} -- {{ l_type.acc_type_desc }}
+                      </option>
+                    </select>
+                      </div>
+                      <div class="form-group col-1">
+                        <input type="text" disabled style="border-radius: 1.25rem!important;"  [value]="int_data.scheme_id " class="form-control form-control-sm custom-scrollbar" tabindex="1"  >
+
+                      </div>
+                      <div class="form-group col-2">
+                        <input type="text" disabled style="border-radius: 1.25rem!important;"  [value]="int_data.scheme_name " class="form-control form-control-sm custom-scrollbar" tabindex="1"  >
+
+                      </div>
+                      <div class="form-group col-2">
+                        
+                        <select 
+                        style="border-radius: 1.25rem!important;" 
+                        [(ngModel)]="int_data.intt_calc_type" 
+                        class="form-control form-control-sm custom-scrollbar" 
+                        disabled>
+                        <option 
+                          *ngFor="let l_cat of instalmentTypeList" 
+                          [value]="l_cat.desc_type">
+                          {{l_cat.desc_type}}-{{l_cat.ins_desc}}
+                        </option>
+                      </select>
+                        
+                      </div>
+                      
+                      <div class="form-group col-2">
+                        <input type="text" disabled style="border-radius: 1.25rem!important;"  [value]="int_data.intt_rt | number:'1.2-2'" class="form-control form-control-sm custom-scrollbar"  tabindex="1"  >
+
+                      </div>
+                    </div>
+                 
+              <hr>
+            </div>
+          </div>
+         
+        </div>
+      </div>
+        </div>
+  </div>
+
+</div>
+<div class="row d-flex justify-content-center align-items-center"
+  style="background-color: #78c2ad21; text-align: center;">
+  <div class="col-xs-12 col-sm-12 col-md-11 col-lg-11 mb-2 bg-white p-1">
+    <button mat-raised-button type="button" class="btn btn-primary btn-sm ml-1 mr-1" (click)="getIntRate()">Retrive</button>
+    <button mat-raised-button type="button" class="btn btn-primary btn-sm ml-1 mr-1" (click)="AddLocker()">Add New Interest</button>
+
+    <!-- <button mat-raised-button type="button" class="btn btn-primary btn-sm ml-1 mr-1" (click)="onUpdateClick()">Update</button> -->
+    <button mat-raised-button type="button" class="btn btn-primary btn-sm ml-1 mr-1" (click)="onBackClick()">Back</button>
+  </div>
+</div>

@@ -1,0 +1,74 @@
+.scroll-when-long{
+  max-height: 60vh;
+  overflow: auto;
+}
+/* .scroll-when-long:hover{
+  overflow: auto;
+} */
+thead tr:nth-child(1) th{
+  background: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.form-group {
+  margin-bottom: 0rem!important;
+}
+
+
+.customers {
+  font-family: Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.customers td, .customers th {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+.customers tr:nth-child(even){background-color: #f2f2f2;}
+
+.customers tr:hover {background-color: #aeeea6;  ;}
+
+.customers th {
+  /* padding-top: 12px;
+  padding-bottom: 12px; */
+  text-align: left;
+  background-color: #234e3c;
+  color: white;
+}
+.holderButton{
+  background-color: #34703a;
+  color: white;
+  border-radius: 30px;
+  margin-left:14px;
+}
+
+
+@media print {
+  body {
+    font-family:Verdana;
+    font-size: 11px;
+    line-height: 1.2; /* Reduces space between lines */
+    margin: 0; /* Removes extra margins */
+    padding: 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: 1px solid #000;
+  }
+  tr {
+    margin: 0; /* Removes extra margin */
+    padding: 0;
+  }
+  p{
+    font-size: 11px;
+  }
+  h5{
+    font-size: 14px;
+  }
+}

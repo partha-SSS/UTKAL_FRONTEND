@@ -249,37 +249,25 @@ export class TransactionPrintComponent implements OnInit {
     this.onLoadScreen(this.content);
     this.asOnDate =this.sys.CurrentDate;
   }
-  onFilterChange(event:any){
-    this.dataSource.data=[];
-    debugger
-    this.selectedFilter = event.value;
-    this.selectedFilter2 = 'B';
-    if (this.selectedFilter == 'C') {
-      this.dataSource.data=this.reportData.filter(e => e.trans_type === 'D' || e.trans_type === 'R');
-    }
-    else if (this.selectedFilter == 'D') {
-      this.dataSource.data=this.reportData.filter(e => e.trans_type === 'W' || e.trans_type === 'B');
-    }
-    else{
-      this.dataSource.data=this.reportData;
-    }
+ applyFilters() {
+  let filteredData = this.reportData;
 
+  // Apply Credit/Debit filtering
+  if (this.selectedFilter === 'C') {
+    filteredData = filteredData.filter(e => e.trans_type === 'D' || e.trans_type === 'R');
+  } else if (this.selectedFilter === 'D') {
+    filteredData = filteredData.filter(e => e.trans_type === 'W' || e.trans_type === 'B');
   }
-  onFilterChange2(event:any){
- this.dataSource.data=[];
-    debugger
-    this.selectedFilter2 = event.value;
-    this.selectedFilter = 'B';
-    if (this.selectedFilter2 == 'C') {
-      this.dataSource.data=this.reportData.filter(e => e.trf_type === 'C');
-    }
-    else if (this.selectedFilter2 == 'T') {
-      this.dataSource.data=this.reportData.filter(e => e.trf_type === 'T');
-    }
-    else{
-      this.dataSource.data=this.reportData;
-    }
+
+  // Apply Cash/Transfer filtering only on filteredData from previous filter
+  if (this.selectedFilter2 === 'C') {
+    filteredData = filteredData.filter(e => e.trf_type === 'C');
+  } else if (this.selectedFilter2 === 'T') {
+    filteredData = filteredData.filter(e => e.trf_type === 'T');
   }
+
+  this.dataSource.data = filteredData;
+}
   getAllCustomer(){
     this.isLoading=true;
     const prm = new p_gen_param();

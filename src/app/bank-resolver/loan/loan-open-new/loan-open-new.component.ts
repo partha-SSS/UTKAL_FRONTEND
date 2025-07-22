@@ -1669,7 +1669,7 @@ getPlus1Month() {
   }
   backScreen() {
     console.log(this.loanDetails.value);
-    if(!this.isSave || !this.isRetrive){
+    if(!this.isRetrive && !this.isSave){
       if(this.loanDetails.value[0]?.sec_type == 'G'){
         this.DeleteGoldMasterDtls();
         this.DeleteLoanSecurityData();
@@ -1688,12 +1688,33 @@ getPlus1Month() {
         }, 1500);
         
       }
-      else{
-        this.DeleteLoanSecurityData();
+      // else{
+      //   this.DeleteLoanSecurityData();
+      //   this.UnlocklockLoanID();
+      // this.router.navigate([this.sys.BankName + '/la']);
+      // debugger
+      // }
+    
+    }
+    else if(this.isRetrive){
+      if(this.loanDetails.value[0]?.sec_type == 'G'){
         this.UnlocklockLoanID();
       this.router.navigate([this.sys.BankName + '/la']);
-      debugger
+        debugger
       }
+      else if(this.loanDetails.value[0]?.sec_type == 'D'){
+        this.UnlocklockLoanID();
+      
+          this.router.navigate([this.sys.BankName + '/la']);
+      
+        
+      }
+      // else{
+      //   this.DeleteLoanSecurityData();
+      //   this.UnlocklockLoanID();
+      // this.router.navigate([this.sys.BankName + '/la']);
+      // debugger
+      // }
     
     }
     else{

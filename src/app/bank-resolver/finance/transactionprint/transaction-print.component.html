@@ -76,34 +76,21 @@
               <hr>
             </div> -->
             <div class="container">
-              <!-- Search Input -->
-              <mat-form-field appearance="outline" class="search-field">
-                <mat-label>Search</mat-label>
-                <input matInput (keyup)="applyFilter($event)" placeholder="Search anything..." />
-              </mat-form-field><br>
-              <mat-radio-group aria-label="Select an option"  [value]="selectedFilter" (change)="onFilterChange($event)">
-                <mat-radio-button value="C">
-                  <label style="margin-top: 10px;">Credit</label>
-                </mat-radio-button>
-                <mat-radio-button value="D"> 
-                  <label style="margin-top: 10px;">Debit</label>
-                </mat-radio-button>
-                <mat-radio-button value="B"> 
-                  <label style="margin-top: 10px;">Both</label>
-                </mat-radio-button>
-              </mat-radio-group>
-<br>
-              <mat-radio-group aria-label="Select an option"  [value]="selectedFilter2" (change)="onFilterChange2($event)">
-                <mat-radio-button value="C">
-                  <label style="margin-top: 10px;">Cash</label>
-                </mat-radio-button>
-                <mat-radio-button value="D"> 
-                  <label style="margin-top: 10px;">Transfer</label>
-                </mat-radio-button>
-                <mat-radio-button value="B"> 
-                  <label style="margin-top: 10px;">Both</label>
-                </mat-radio-button>
-              </mat-radio-group>
+
+          <label for="transactionType" style="font-weight: 500;">Transaction Type: </label>
+            <select id="transactionType" [(ngModel)]="selectedFilter" (change)="applyFilters()" class="custom-select-box">
+              <option value="C">Credit</option>
+              <option value="D">Debit</option>
+              <option value="B">Both</option>
+            </select>
+
+            <!-- Transfer Type: Cash/Transfer/Both -->
+            <label for="transferType" style="font-weight: 500; margin-left: 20px;">Transfer Type: </label>
+            <select id="transferType" [(ngModel)]="selectedFilter2" (change)="applyFilters()" class="custom-select-box">
+              <option value="C">Cash</option>
+              <option value="T">Transfer</option>
+              <option value="B">Both</option>
+            </select>
               <!-- Responsive Material Table -->
               <div class="table-responsive" id="_voucher">
                 <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" matSort>

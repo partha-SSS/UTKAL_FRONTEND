@@ -7,15 +7,7 @@
     </div>
     <div class="modal-body">
      
-      <div *ngIf="showMsg && showMsg.Show" class="col-12 mt-1">
-        <div class="alert alert-dismissible fade show" role="alert" [ngClass]="{'alert-success': showMsg.Type === 0,
-         'alert-warning':showMsg.Type === 1, 'alert-info':showMsg.Type === 2, 'alert-danger':showMsg.Type === 3 }">
-          <strong>{{showMsg.Message}}</strong>
-          <button type="button" class="close" data-dismiss="alert" (click)="showMsg = null" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-      </div>
+      
       <form [formGroup]="importEntryForm">
         <div class="form-group col-12" style="margin-bottom: 0%;">
           <small for="agent_cd">Search Agent.. </small>
@@ -108,3 +100,12 @@
   </div>
  
  <loading *ngIf="isLoading"></loading>
+<div *ngIf="showMsg && showMsg.Show" class="col-12 mt-1">
+        <div class="alert alert-dismissible fade show" role="alert" [ngClass]="{'alert-success': showMsg.Type === 0,
+         'alert-warning':showMsg.Type === 1, 'alert-info':showMsg.Type === 2, 'alert-danger':showMsg.Type === 3 }">
+          <strong>{{showMsg.Message}}</strong>
+          <button type="button" class="close" data-dismiss="alert" (click)="showMsg = null" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      </div>

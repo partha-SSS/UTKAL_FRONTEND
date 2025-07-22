@@ -829,12 +829,12 @@ debugger
       exit(0);
     }
 
-    if ((this.tm_deposit.cert_no === undefined || this.tm_deposit.cert_no === null || this.tm_deposit.cert_no === "")
-    && (this.tm_deposit.acc_type_cd === 6)) {
-    this.HandleMessage(true, MessageType.Warning, 'S/B Account Number not present to update the Account Type- '
-      + this.tm_deposit.acc_type_desc);
-    exit(0);
-  }
+  //   if ((this.tm_deposit.cert_no === undefined || this.tm_deposit.cert_no === null || this.tm_deposit.cert_no === "")
+  //   && (this.tm_deposit.acc_type_cd === 6)) {
+  //   this.HandleMessage(true, MessageType.Warning, 'S/B Account Number not present to update the Account Type- '
+  //     + this.tm_deposit.acc_type_desc);
+  //   exit(0);
+  // }
 
     if ((this.tm_deposit.acc_type_cd === 1 || this.tm_deposit.acc_type_cd === 7
       || this.tm_deposit.acc_type_cd === 8 || this.tm_deposit.acc_type_cd === 9)) {

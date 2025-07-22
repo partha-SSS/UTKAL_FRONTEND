@@ -1176,6 +1176,7 @@ console.log(this.accDtlsFrm.controls.mat_amt.value);
     this.shownoresult = false;
     this.selectedCust = cust.acc_num
     console.log(cust)
+    this.tdDefTransFrm.reset()
     this.f.acct_num.setValue(cust.acc_num);
     this.onAccountNumTabOff();
     // this.f.acct_num.value.length=0;
@@ -1592,13 +1593,13 @@ getjoinholder(){
                   // Construct proper date format "YYYY-MM-DD" for JavaScript
                   const dueDateObj = new Date(`${dueYear}-${String(dueMonth).padStart(2, '0')}-${String(dueDay).padStart(2, '0')}`);
               
-                  return dueDateObj <= currDateObj;
+                  return dueDateObj < currDateObj;
               });
               
-              console.log("Total count:", filteredData.length);
+              console.log("Total count:", (filteredData.length ));
               console.log("Filtered Data:", filteredData);
 
-              this.rdDefaultNo=filteredData.length;
+              this.rdDefaultNo=(filteredData.length);
               console.log("Total count:", filteredData.length);
               console.log("Filtered Data:", filteredData);
               debugger
@@ -2838,7 +2839,7 @@ getjoinholder(){
           
             const temp_gen_param = new p_gen_param();
         
-            if(this.diff1>30 && (Number(this.f.acc_type_cd.value) == 4||Number(this.f.acc_type_cd.value) == 5)){
+            if(this.diff1>=1 && (Number(this.f.acc_type_cd.value) == 4||Number(this.f.acc_type_cd.value) == 5)){
               this.modalRefClose = this.modalService.show(this.afterMatClose,
                 { class: 'modal-lg', keyboard: false, backdrop: true, ignoreBackdropClick: true })
 
@@ -2873,7 +2874,7 @@ getjoinholder(){
                 this.aftmatInt = data;
                 if(data){
                   debugger
-                  if((Number(this.f.acc_type_cd.value) == 4) && this.diff1>30){
+                  if((Number(this.f.acc_type_cd.value) == 4) && this.diff1>=1){
                               debugger
                               this.showOnClose = true;
                               this.tdDefTransFrm.patchValue({
@@ -6242,6 +6243,7 @@ debugger
   
   }
   onResetClick(): void {
+    this.rdInClose=0;
     // this.lockMode=false;
     this.paidMisIntt=0
     this.showLockType=false;
@@ -6280,7 +6282,7 @@ debugger
     this.aftmatInt=0;
     this.effInt=0;
     this.matureIntForMis=0;
-    this.accNoEnteredForTransaction.intt_amt=0;
+    // this.accNoEnteredForTransaction.intt_amt=0;
     this.preCloseMIS=null;
     this.td.balance.setValue(0)
   }
